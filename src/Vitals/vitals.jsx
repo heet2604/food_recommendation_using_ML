@@ -1,90 +1,237 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 function Vitals() {
-  const [popopen , setPopOpen] = useState(false)
+  // Doctor details (for future use)
   const doctorDetails = {
-    name : "Dr Fenny Shah",
-    contact : "+1-234-567-890",
-    email  : "fennyshah@gmail.com"
-  }
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+    name: "Dr Fenny Shah",
+    contact: "+1-234-567-890",
+    email: "fennyshah@gmail.com",
+  };
+
+  // State for current input readings
   const [sugarReading, setSugarReading] = useState(90);
   const [weightReading, setWeightReading] = useState(85);
 
-  // Fetch vitals from backend
+  // Arrays to store the history of readings
+  const [sugarReadings, setSugarReadings] = useState([]);
+  const [weightReadings, setWeightReadings] = useState([]);
+
+  // Fetch vitals from backend (if needed)
   useEffect(() => {
     axios
       .get("http://localhost:3000/vitals")
       .then((response) => {
         console.log("Data fetched from backend:", response.data);
+        // Optionally update state with fetched data here.
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
       });
   }, []);
 
-  const sugarIncrement = () => {
-    setSugarReading((prev) => Math.max(prev + 1,0));
+  // Increment/Decrement functions for blood sugar
+  const sugarIncrement = () =>
+    setSugarReading((prev) => Math.max(prev + 1, 0));
+  const sugarDecrement = () =>
+    setSugarReading((prev) => Math.max(prev - 1, 0));
+
+  // Increment/Decrement functions for weight
+  const weightIncrement = () =>
+    setWeightReading((prev) => Math.max(prev + 1, 0));
+  const weightDecrement = () =>
+    setWeightReading((prev) => Math.max(prev - 1, 0));
+
+  // Functions to add readings
+  const addSugarReading = () => {
+    setSugarReadings((prev) => [
+      ...prev,
+      { value: sugarReading, timestamp: new Date() },
+    ]);
+    toast.success("Blood sugar reading added successfully");
   };
 
-  const sugarDecrement = () => {
-    setSugarReading((prev) => Math.max(prev - 1,0));
+  const addWeightReading = () => {
+    setWeightReadings((prev) => [
+      ...prev,
+      { value: weightReading, timestamp: new Date() },
+    ]);
+    toast.success("Weight reading added successfully");
   };
 
-  const weightIncrement = () => {
-    setWeightReading((prev) => Math.max(prev + 1,0));
-  };
+  // Blood Sugar Graph defined inline in Vitals
+  // const BloodSugarGraphInline = ({ readings }) => {
+  //   const data = readings.map((reading) => ({
+  //     value: reading.value,
+  //     time: format(new Date(reading.timestamp), "HH:mm"),
+  //   }));
 
-  const weightDecrement = () => {
-    setWeightReading((prev) => Math.max(prev - 1,0));
+  //   return (
+  //     <div className="w-full h-[400px]">
+  //       {readings.length === 0 ? (
+  //         <div className="h-full flex items-center justify-center text-muted-foreground">
+  //           No readings yet. Add your first reading above.
+  //         </div>
+  //       ) : (
+  //         <ResponsiveContainer width="100%" height="100%">
+  //           <LineChart data={data}>
+  //             <CartesianGrid
+  //               strokeDasharray="3 3"
+  //               stroke="rgba(255,255,255,0.1)"
+  //             />
+  //             <XAxis
+  //               dataKey="time"
+  //               stroke="rgba(255,255,255,0.5)"
+  //               tickLine={false}
+  //               axisLine={false}
+  //             />
+  //             <YAxis
+  //               stroke="rgba(255,255,255,0.5)"
+  //               tickLine={false}
+  //               axisLine={false}
+  //               unit=" mg/dL"
+  //             />
+  //             <Tooltip
+  //               contentStyle={{
+  //                 backgroundColor: "rgba(0,0,0,0.8)",
+  //                 border: "1px solid rgba(255,255,255,0.1)",
+  //                 borderRadius: "8px",
+  //                 color: "#fff",
+  //               }}
+  //             />
+  //             <Line
+  //               type="monotone"
+  //               dataKey="value"
+  //               stroke="hsl(var(--primary))"
+  //               strokeWidth={2}
+  //               dot={{ fill: "hsl(var(--primary))" }}
+  //               animationDuration={1000}
+  //             />
+  //           </LineChart>
+  //         </ResponsiveContainer>
+  //       )}
+  //     </div>
+  //   );
+  // };
+
+
+
+  const BloodSugarGraphInline = ({ readings }) => {
+    const data = readings.map((reading) => ({
+      value: reading.value,
+      time: format(new Date(reading.timestamp), "HH:mm"),
+    }));
+  
+    return (
+      <div className="w-full h-[400px]">
+        {readings.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-muted-foreground">
+            No readings yet. Add your first reading above.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+              <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" tickLine={false} axisLine={false} />
+              <YAxis stroke="rgba(255,255,255,0.5)" tickLine={false} axisLine={false} unit=" mg/dL" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(0,0,0,0.8)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#ff0000"   // Temporary red color for testing
+                strokeWidth={2}
+                dot={{ fill: "#ff0000" }}   // Temporary red color for testing
+                animationDuration={1000}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    );
+  };
+  
+
+  // Weight Graph defined inline in Vitals
+  const WeightGraph = ({ readings }) => {
+    const data = readings.map((reading) => ({
+      value: reading.value,
+      time: format(new Date(reading.timestamp), "HH:mm"),
+    }));
+
+    return (
+      <div className="w-full h-[400px]">
+        {readings.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-muted-foreground">
+            No weight readings yet. Add your first reading above.
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="rgba(255,255,255,0.1)"
+              />
+              <XAxis
+                dataKey="time"
+                stroke="rgba(255,255,255,0.5)"
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="rgba(255,255,255,0.5)"
+                tickLine={false}
+                axisLine={false}
+                unit=" kg"
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(0,0,0,0.8)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  borderRadius: "8px",
+                  color: "#fff",
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke="#22c55e"
+                strokeWidth={2}
+                dot={{ fill: "#22c55e" }}
+                animationDuration={1000}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+    );
   };
 
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
-
-      {/* Navbar */}
-      <nav className="w-full bg-gray-800 px-6 py-4 flex justify-between items-center">
-        <a href="/home" className="text-lg font-bold">Nourish</a>
-        <div className="lg:hidden">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-white focus:outline-none"
-          >
-            ☰
-          </button>
-        </div>
-        <div className="hidden lg:flex flex-row items-center gap-8">
-          <a href="/home" className="cursor-pointer hover:text-gray-400">Home</a>
-          <a href="/food_details" className="cursor-pointer hover:text-gray-400">Food Details</a>
-          <a href="/vitals" className="cursor-pointer hover:text-gray-500">Track Vitals</a>
-          <a href="/premium" className="cursor-pointer hover:text-gray-500">Explore Premium</a>
-          <a href="/profile" className="cursor-pointer hover:text-gray-500">Profile</a>
-        </div>
-      </nav>
-
-      {isMenuOpen && (
-        <div className="w-full bg-gray-800 px-6 py-4 flex flex-col items-center lg:hidden fixed top-16 left-0 z-50">
-          <a href="/home" className="cursor-pointer hover:text-gray-400 py-2">Home</a>
-          <a href="/food_details" className="cursor-pointer hover:text-gray-400 py-2">
-            Food Details
-          </a>
-          <a href="/vitals" className="cursor-pointer hover:text-gray-400 py-2">
-            Track Vitals
-          </a>
-          <a className="cursor-pointer hover:text-gray-400 py-2">
-            Explore Premium
-          </a>
-          <a className="cursor-pointer hover:text-gray-400 py-2">Profile</a>
-        </div>
-      )}
-
-      {/* Vitals */}
+      {/* Vitals Controls */}
       <div className="flex flex-col md:flex-row gap-10 justify-center mt-20 p-5 items-center">
-        {/* Sugar Level */}
-        <div className="rounded-lg outline text-white w-96 text-center p-5 shadow-lg bg-gray-800">
+        {/* Blood Sugar Input */}
+        <div className="rounded-lg w-96 text-center p-5 shadow-lg bg-gray-800">
           <h2 className="mb-4 text-lg font-semibold">
-            🩸Blood Sugar Level (mg/dL)
+            🩸 Blood Sugar Level (mg/dL)
           </h2>
           <div className="flex items-center justify-center gap-3">
             <button
@@ -106,10 +253,16 @@ function Vitals() {
               +
             </button>
           </div>
+          <button
+            onClick={addSugarReading}
+            className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+          >
+            Add Reading
+          </button>
         </div>
 
-        {/* Weight */}
-        <div className="rounded-lg outline text-white w-96 text-center p-5 shadow-lg bg-gray-800">
+        {/* Weight Input */}
+        <div className="rounded-lg w-96 text-center p-5 shadow-lg bg-gray-800">
           <h2 className="mb-4 text-lg font-semibold">📈 Weight (kg)</h2>
           <div className="flex items-center justify-center gap-3">
             <button
@@ -131,47 +284,30 @@ function Vitals() {
               +
             </button>
           </div>
+          <button
+            onClick={addWeightReading}
+            className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+          >
+            Add Reading
+          </button>
         </div>
       </div>
 
-      <p className="text-white text-xl text-center mt-5">
-        Recommended to track sugar after a specific meal
-      </p>
-      <div className="mt-7 md:flex-row flex flex-col items-center justify-center gap-5">
-        <textarea className="mt-3 text-sm rounded-lg outline text-white w-60 text-center p-5 shadow-lg bg-gray-800 h-16">
-          Before meal-70-100 mg/dL
-        </textarea>
-        <textarea className="mt-3 text-sm rounded-lg outline text-white w-60 text-center p-5 shadow-lg bg-gray-800 h-16">
-          After meal-less than 140 mg/dL
-        </textarea>
-      </div>
+      {/* Graphs Section */}
+      <div className="w-full max-w-4xl mx-auto px-4 mt-8 space-y-6">
+        {/* Blood Sugar Graph */}
+        <div className="rounded-lg p-6 shadow-lg bg-gray-800">
+          <h2 className="text-lg font-semibold mb-4">
+            Blood Sugar History
+          </h2>
+          <BloodSugarGraphInline readings={sugarReadings} />
+        </div>
 
-      {popopen && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-black p-6 rounded-lg shadow-lg text-white w-80">
-              <h2 className="text-xl font-semibold mb-4">Doctors Details</h2>
-              <p className="mb-3"><strong>👨🏻‍⚕️ : </strong> {doctorDetails.name}</p>
-              <p className="mb-3"><strong>☎️ : </strong> {doctorDetails.contact}</p>
-              <p className="mb-3"><strong>✉️ : </strong> {doctorDetails.email}</p>
-              <button onClick={()=>setPopOpen(false)} className="mt-2 bg-transparent text-green-400 px-4 py-1 rounded hover:text-green-600 transition">Close</button>
-            </div>
-          </div>
-      )}
-
-      <div className="text-center">
-        <button onClick={()=>setPopOpen(true)} className="mt-12 bg-green-500 text-white px-6 py-3 rounded-lg text-lg hover:bg-green-700 transition">
-          Need Help? Contact a doctor
-        </button>
-      </div>
-
-      {/* Fact */}
-      <div className="mt-20 bg-gray-800 p-6 rounded-lg shadow-lg w-full mx-auto text-center">
-        <h3 className="text-lg font-bold">🍭 Fun Fact!</h3>
-        <p className="mt-2 text-gray-300">
-          Did you know? Your brain runs on glucose! In fact, it uses around{" "}
-          <strong>20%</strong> of your body's energy each day. But remember,
-          balance is key! 🧠💡
-        </p>
+        {/* Weight Graph */}
+        <div className="rounded-lg p-6 shadow-lg bg-gray-800">
+          <h2 className="text-lg font-semibold mb-4">Weight History</h2>
+          <WeightGraph readings={weightReadings} />
+        </div>
       </div>
     </div>
   );
