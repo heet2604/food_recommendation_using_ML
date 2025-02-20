@@ -47,7 +47,7 @@ function FoodDetails() {
   }, [location.state]);
   
 
-  const updatedValues = (value)=>((value/100)*quantity.toFixed(2));
+  const updatedValues = (value) => ((value / 100) * quantity).toFixed(2);
 
   // const increment = () => {
   //   setQuantity((prev) => prev + 1);
@@ -149,6 +149,7 @@ function FoodDetails() {
               readOnly
               className="bg-transparent border border-white text-white p-2 rounded text-center w-20"
             /> */}
+            <label>Quantity(g)</label>
             <input
               type="number"
               placeholder="Calories (kcal)"
@@ -167,6 +168,7 @@ function FoodDetails() {
 
           {/* Calories */}
           <div className="mt-4">
+            <label>Calories(kcal)</label>
             <input
               type="number"
               placeholder="Calories (kcal)"
@@ -178,34 +180,46 @@ function FoodDetails() {
 
           {/* Macros (Protein, Fats, Carbs, Fiber) */}
           <div className="grid grid-cols-2 gap-3 mt-5">
-            <input
-              type="number"
-              placeholder="Protein (g)"
-              value={updatedValues(foodData.protein_g)}
-              readOnly
-              className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
-            />
-            <input
-              type="number"
-              placeholder="Fats (g)"
-              value={updatedValues(foodData.fat_g)}
-              readOnly
-              className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
-            />
-            <input
-              type="number"
-              placeholder="Carbs (g)"
-              value={updatedValues(foodData.carb_g)}
-              readOnly
-              className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
-            />
-            <input
-              type="number"
-              placeholder="Fiber (g)"
-              value={updatedValues(foodData.fibre_g)}
-              readOnly
-              className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
-            />
+            <div>
+              <label>Protein(g)</label>
+              <input
+                type="number"
+                placeholder="Protein (g)"
+                value={updatedValues(foodData.protein_g)}
+                readOnly
+                className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
+              />
+            </div>
+            <div>
+              <label>Fats(g)</label>
+              <input
+                type="number"
+                placeholder="Fats (g)"
+                value={updatedValues(foodData.fat_g)}
+                readOnly
+                className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
+              />
+            </div>
+            <div>
+              <label>Carbs(g)</label>
+              <input
+                type="number"
+                placeholder="Carbs (g)"
+                value={updatedValues(foodData.carb_g)}
+                readOnly
+                className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
+              />
+            </div>
+            <div>
+              <label>Fiber(g)</label>
+              <input
+                type="number"
+                placeholder="Fiber (g)"
+                value={updatedValues(foodData.fibre_g)}
+                readOnly
+                className="bg-transparent border border-white text-white p-2 rounded text-center w-full"
+              />
+            </div>
           </div>
         </div>
       </div>
