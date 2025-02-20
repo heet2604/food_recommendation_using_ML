@@ -112,3 +112,7 @@ app.get("/api/latest-food/:userId", authMiddleware, async (req, res) => {
     }
 });
 
+
+app.listen(port,()=>{
+    console.log(`Live at port : ${port}`)
+})
