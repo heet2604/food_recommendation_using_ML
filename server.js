@@ -95,21 +95,20 @@ app.get("/api/selected-food", authMiddleware, async (req, res) => {
     }
 });
 
-app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
-    //const {userId} = req.params;
-    try{
-        const latestfood = await Food.findOne({userId : req.user.userId}).sort({createdAt:-1}).limit(1);
-        if(!latestfood){
-            return res.status(404).json({message:"No food found"})
+app.get("/api/latest-food/:userId", authMiddleware, async (req, res) => {
+    try {
+        const latestfood = await Food.find({ userId: req.user.userId }) // Use `find()` instead of `findOne()`
+                                   .sort({ createdAt: -1 }) // Sort in descending order
+                                   .limit(1); // Get only the latest item
+
+        if (!latestfood.length) {
+            return res.status(404).json({ message: "No food found" });
         }
-        res.json(latestfood)
+
+        res.json(latestfood[0]); // Since `find()` returns an array, return the first item
+    } catch (err) {
+        console.error("Error fetching latest food:", err);
+        res.status(500).json({ message: "Server Error" });
     }
-    catch(err){
-        res.status(500).json({message : "Server Error"})
-    }   
-})
-
-
-app.listen(port, () => {
-    console.log(`Live at port ${port}`);
 });
+
