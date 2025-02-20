@@ -1,8 +1,8 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import axios from 'axios'
-import {useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function App() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function App() {
   const [nutrients, setNutrients] = useState({
     Protein: 100, // In grams
     Fiber: 15,
-    Carbs: 170, 
+    Carbs: 170,
     Fats: 80,
   });
 
@@ -115,12 +115,12 @@ export default function App() {
                     className="h-5 rounded-full absolute top-0 left-0 transition-all duration-500"
                     style={{
                       width: `${(nutrient.value / 100) * 100}%`,
-                      backgroundColor: 
-                      (nutrient.name === "Protein" && nutrient.value <= 150) ||
-                      (nutrient.name === "Fiber" && nutrient.value <= 30) ||
-                      (nutrient.name === "Carbs" && nutrient.value <= 210) ||
-                      (nutrient.name === "Fats" && nutrient.value <= 100) 
-                       ? "#32CD32" : "#FF0000",
+                      backgroundColor:
+                        (nutrient.name === "Protein" && nutrient.value <= 150) ||
+                          (nutrient.name === "Fiber" && nutrient.value <= 30) ||
+                          (nutrient.name === "Carbs" && nutrient.value <= 210) ||
+                          (nutrient.name === "Fats" && nutrient.value <= 100)
+                          ? "#32CD32" : "#FF0000",
                     }}
                   ></div>
                 </div>
@@ -130,7 +130,7 @@ export default function App() {
 
           {/* Add Food Item Button */}
           <button
-            onClick={()=>navigate("/search")}
+            onClick={() => navigate("/search")}
             className="bg-white text-black px-6 py-2 rounded-full font-semibold mx-auto mt-4"
           >
             Add Food Item
@@ -140,24 +140,39 @@ export default function App() {
         {/* Right Section: Tiles */}
         <div className="flex flex-col flex-1 gap-6 mt-10 lg:mt-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
-            {[
-              { title: "Sugar Levels", button: "Add new Reading", icon : "📈" },
-              { title: "Body Weight", button: "Add new Reading", icon: "📅" },
-              { title: "Recommendations", button: "Review", icon: "🎯" },
-              {title : "Something else" , button : "Button" , icon: "😶‍🌫️"}
-            ].map(({ title, button, icon}, index) => (
-              <div
-                key={index}
-                className="bg-gray-800 rounded-lg p-4 flex flex-col items-center"
-              >
-                <div className="text-4xl mb-2">{icon}</div>
-                <h2 className="text-sm font-semibold mb-2">{title}</h2>
-                <button className="bg-white text-black px-3 py-1 text-sm rounded-full">
-                  {button}
-                </button>
-              </div>
-            ))}
+            <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-4xl mb-2">📈</div>
+              <h2 className="text-sm font-semibold mb-2">Sugar Levels</h2>
+              <button onClick={() => navigate("/vitals")} className="bg-white text-black px-3 py-1 text-sm rounded-full">
+                Add new Reading
+              </button>
+            </div>
+
+            <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-4xl mb-2">📅</div>
+              <h2 className="text-sm font-semibold mb-2">Body Weight</h2>
+              <button onClick={() => navigate("/vitals")} className="bg-white text-black px-3 py-1 text-sm rounded-full">
+                Add new Reading
+              </button>
+            </div>
+
+            <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-4xl mb-2">🎯</div>
+              <h2 className="text-sm font-semibold mb-2">Recommendations</h2>
+              <button onClick={() => navigate("/food_details")} className="bg-white text-black px-3 py-1 text-sm rounded-full">
+                Review
+              </button>
+            </div>
+
+            <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+              <div className="text-4xl mb-2">😶‍🌫️</div>
+              <h2 className="text-sm font-semibold mb-2">Something else</h2>
+              <button className="bg-white text-black px-3 py-1 text-sm rounded-full">
+                Button
+              </button>
+            </div>
           </div>
+
         </div>
       </div>
     </div>
