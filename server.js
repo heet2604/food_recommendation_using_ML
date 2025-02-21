@@ -98,7 +98,7 @@ app.get("/api/selected-food", authMiddleware, async (req, res) => {
 app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
     //const {userId} = req.params;
     try{
-        const latestfood = await Food.findOne({userId : req.user.userId}).sort({createdAt:-1}).limit(1);
+        const latestfood = await Food.findOne({userId : req.user.userId}).sort({_id:-1});   
         if(!latestfood){
             return res.status(404).json({message:"No food found"})
         }
