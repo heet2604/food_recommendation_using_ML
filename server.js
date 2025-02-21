@@ -9,6 +9,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
+const axios = require("axios");
+
 
 const port = 5000;
 app.use(express.json());
@@ -109,6 +111,57 @@ app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
     }   
 })
 
+app.post("/api/analyze",async (req,res)=>{
+    try{
+        const {food} = req.body;
+        const response = await axios.post("https://api.together.xyz/v1/chat/completions",{model:"meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            messages : [
+                { role: "system", content: "You are a nutrition expert. Given a food description, return its estimated calories, carbs, protein, fat, and fiber in **strict JSON format**. NO markdown, no explanations, no additional text. ONLY valid JSON." },
+                { role: "user", content: `Provide estimated nutrition facts per 100g of ${food} in valid JSON format. ONLY return JSON, nothing else.` }
+            ],
+            
+            max_tokens : 200,
+            temperature : 0.7
+        },
+        {
+            headers : {
+                "Authorization" :  `Bearer ${process.env.TOGETHER_API_KEY}`,
+                "Content-Type" : "application/json"
+            }
+        });
+
+        let nutritionText = response.data.choices[0].message.content;
+
+        //Step 1 : Remove markdown formatting 
+        nutritionText = nutritionText.replace(/```json|```/g, '').trim();
+
+        //Step 2 : Extract Macros 
+        const extractMacros = (text)=>{
+            try{
+                const parsedData = JSON.parse(text);
+                return{
+                    food : food,
+                    calorie : parsedData.calories || 0,
+                    carb : parsedData.carbs || 0,
+                    protein : parsedData.protein || 0,
+                    fat : parsedData.fat || 0,
+                    fiber : parsedData.fiber || 0
+                };
+            }
+            catch(err){
+                console.log("JSON parsing error",err);
+                return null;
+            }
+        };
+        const nutritionData = extractMacros(nutritionText);
+        console.log("LLM respnse : ",nutritionText)
+        res.json({nutritionData})
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).json({err : "Something went wrong"});
+    }
+});
 
 app.listen(port, () => {
     console.log(`Live at port ${port}`);

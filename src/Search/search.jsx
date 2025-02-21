@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 
-const Search = () => {
+const Search = ({onAddFood}) => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [result, setResult] = useState([]);
@@ -14,31 +13,36 @@ const Search = () => {
   // Read and search food from Excel
   const handleSearch = async () => {
     try {
-      const response = await fetch("/Anuvaad_INDB_2024.11.xlsx");
-      const arrayBuffer = await response.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: "array" });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(worksheet);
-
-      const filteredResults = data.filter((item) =>
-        item.food_name?.toLowerCase().includes(search.toLowerCase())
+      const response = await axios.post(
+        "http://localhost:5000/api/analyze",
+        { food: search },
+        { headers: { "Content-Type": "application/json" } }
       );
-
-      const formattedResults = filteredResults.map((item) => ({
-        food_name: item.food_name,
-        energy_kcal: item.energy_kcal || 0,
-        fibre_g: item.fibre_g || 0,
-        fat_g: item.fat_g || 0,
-        protein_g: item.protein_g || 0,
-        carb_g: item.carb_g || 0,
-      }));
-
-      setResult(formattedResults);
+  
+      console.log("📜 API Response:", response.data);
+  
+      if (response.data.nutritionData) {
+        const { calorie, carb, protein, fat, fiber } = response.data.nutritionData;
+        setResult([
+          {
+            food_name: search,
+            energy_kcal: calorie || 0,
+            fibre_g: fiber || 0,
+            fat_g: fat || 0,
+            protein_g: protein || 0,
+            carb_g: carb || 0
+          }
+        ]);
+      } else {
+        setResult([]);
+        toast.error("No results found. Try a different food item.");
+      }
     } catch (err) {
-      console.error("Error reading from the file:", err);
-      toast.error("Failed to load food data");
+      console.error("❌ API Error:", err.response?.data || err.message);
+      toast.error("Failed to fetch food data. Check the backend logs.");
     }
   };
+  
 
   // Add selected food to database
   const handleAddButton = async () => {
