@@ -14,17 +14,18 @@ import { toast } from "sonner";
 
 function Vitals() {
   // Doctor details (for future use)
-  const doctorDetails = {
-    name: "Dr Fenny Shah",
-    contact: "+1-234-567-890",
-    email: "fennyshah@gmail.com",
-  };
+  // const doctorDetails = {
+  //   name: "Dr Fenny Shah",
+  //   contact: "+1-234-567-890",
+  //   email: "fennyshah@gmail.com",
+  // };
 
   // State for current input readings
   const [sugarReading, setSugarReading] = useState(90);
   const [weightReading, setWeightReading] = useState(85);
 
   // Arrays to store the history of readings
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sugarReadings, setSugarReadings] = useState([]);
   const [weightReadings, setWeightReadings] = useState([]);
 
@@ -225,11 +226,25 @@ function Vitals() {
   };
 
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col">
+    <div className="bg-black text-white min-h-screen flex flex-col items--center p-4 w-full">
+      {/* NAVBAR */}
+      <nav className="w-full fixed top-0 left-0 bg-gray-800 px-6 py-4 flex justify-between items-center">
+        <a href="/home" className="text-lg font-bold">Nourish</a>
+        <div className="lg:hidden">
+          <button onClick={()=>setIsMenuOpen(isMenuOpen)} className="text-white focus:outline-none">☰</button>
+        </div>
+        <div className="hidden lg:flex flex-row items-center gap-8">
+          <a href="/home" className="cursor-pointer hover:text-gray-400">Home</a>
+          <a href="/food_details" className="cursor-pointer hover:text-gray-400">Food Details</a>
+          <a href="/vitals" className="cursor-pointer hover:text-gray-400">Track Vitals</a>
+          <a href="/premium" className="cursor-pointer hover:text-gray-400">Explore Premium</a>
+          <span className="cursor-pointer hover:text-gray-400">Profile</span>
+        </div>
+      </nav>
       {/* Vitals Controls */}
       <div className="flex flex-col md:flex-row gap-10 justify-center mt-20 p-5 items-center">
         {/* Blood Sugar Input */}
-        <div className="rounded-lg w-96 text-center p-5 shadow-lg bg-gray-800">
+        <div className="rounded-lg w-96 text-center p-5 shadow-lg bg-gray-800 border border-white">
           <h2 className="mb-4 text-lg font-semibold">
             🩸 Blood Sugar Level (mg/dL)
           </h2>
@@ -262,7 +277,7 @@ function Vitals() {
         </div>
 
         {/* Weight Input */}
-        <div className="rounded-lg w-96 text-center p-5 shadow-lg bg-gray-800">
+        <div className="rounded-lg w-96 text-center p-5 shadow-lg bg-gray-800 border border-white">
           <h2 className="mb-4 text-lg font-semibold">📈 Weight (kg)</h2>
           <div className="flex items-center justify-center gap-3">
             <button
@@ -296,16 +311,16 @@ function Vitals() {
       {/* Graphs Section */}
       <div className="w-full max-w-4xl mx-auto px-4 mt-8 space-y-6">
         {/* Blood Sugar Graph */}
-        <div className="rounded-lg p-6 shadow-lg bg-gray-800">
+        <div className="rounded-lg p-6 shadow-lg bg-gray-800 border border-white">
           <h2 className="text-lg font-semibold mb-4">
-            Blood Sugar History
+            Blood Sugar History 📅
           </h2>
           <BloodSugarGraphInline readings={sugarReadings} />
         </div>
 
         {/* Weight Graph */}
-        <div className="rounded-lg p-6 shadow-lg bg-gray-800">
-          <h2 className="text-lg font-semibold mb-4">Weight History</h2>
+        <div className="rounded-lg p-6 shadow-lg bg-gray-800 border border-white">
+          <h2 className="text-lg font-semibold mb-4">Weight History 📅</h2>
           <WeightGraph readings={weightReadings} />
         </div>
       </div>

@@ -19,6 +19,7 @@ function FoodDetails() {
     if (location.state && location.state.foodData) {
       console.log("📥 Received food data:", location.state.foodData);
       setFoodData(location.state.foodData);
+      setQuantity(location.state.foodData.quantity || 100);
       return; // Stop execution if data is already available
     }
 
@@ -38,6 +39,7 @@ function FoodDetails() {
         }
         console.log("API response : ",response.data)
         setFoodData(response.data);
+        setQuantity(response.data.quantity || 100);
       }
       catch(err){
         console.error(err);
@@ -152,7 +154,7 @@ function FoodDetails() {
             <label>Quantity(g)</label>
             <input
               type="number"
-              placeholder="Calories (kcal)"
+              placeholder="Quantity"
               value={quantity}
               onChange={handleQuantityChange}
               readOnly
