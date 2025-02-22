@@ -10,9 +10,10 @@ const Search = ({onAddFood}) => {
   const [selectedFood, setSelectedFood] = useState(null);
   const [quantity, setQuantity] = useState(100); // Default quantity 100g
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   // Read and search food from Excel
   const handleSearch = async () => {
-    toast.info("Remember to select the food again after updating the quantity")
+    toast.info("Remember to select the food again after updating the quantity!");
     try {
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
@@ -27,7 +28,7 @@ const Search = ({onAddFood}) => {
         const { calorie, carb, protein, fat, fiber } = response.data.nutritionData;
         setResult([
           {
-            food_name: formattedSearch.replace(/\b\w/g,(char) => char.toUpperCase()),
+            food_name: formattedSearch.replace(/\b\w/g, (char) => char.toUpperCase()),
             energy_kcal: calorie || 0,
             fibre_g: fiber || 0,
             fat_g: fat || 0,
@@ -94,7 +95,7 @@ const Search = ({onAddFood}) => {
       console.error("❌ Error adding food to database:", err);
       toast.error("Failed to add food!");
     }
-  };
+  };  
   
   
   return (
@@ -123,8 +124,9 @@ const Search = ({onAddFood}) => {
           <a href="" className="cursor-pointer hover:text-gray-400 py-2">Profile</a>
         </div>
       )}
-      
+
       <h1 className="text-2xl font-bold mt-20">Search Food for Nutritional Information (per 100g)</h1>
+      
       <div className="flex items-center justify-center w-full max-w-md mt-10">
         <input
           type="text"
@@ -144,11 +146,37 @@ const Search = ({onAddFood}) => {
           className={`bg-gray-700 p-5 rounded-lg shadow-lg w-96 text-center border-2 
           ${selectedFood?.food_name === item.food_name ? "border-yellow-500" : "border-green-500"} 
           mt-10 cursor-pointer`}
-          onClick={() => setSelectedFood(item)}
+          onClick={() => {
+            console.log("✅ Food selected:", item);
+            setSelectedFood(item);
+          }}
         >
           <h2 className="text-2xl font-bold text-green-400 mb-3">{item.food_name}</h2>
+
+          <label className="block text-white mb-2">Quantity (g):</label>
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            className="w-20 p-2 text-black rounded"
+          />
+
+          <p className="text-xl mb-2 bg-gray-800 p-3 w-3/4 rounded-md mx-auto mt-3">
+            <strong>Calories:</strong> {((item.energy_kcal * quantity) / 100).toFixed(2)} kcal
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gray-800 p-3 rounded-lg"><strong>Fiber:</strong> {((item.fibre_g * quantity) / 100).toFixed(2)} g</div>
+            <div className="bg-gray-800 p-3 rounded-lg"><strong>Fats:</strong> {((item.fat_g * quantity) / 100).toFixed(2)} g</div>
+            <div className="bg-gray-800 p-3 rounded-lg"><strong>Protein:</strong> {((item.protein_g * quantity) / 100).toFixed(2)} g</div>
+            <div className="bg-gray-800 p-3 rounded-lg"><strong>Carbs:</strong> {((item.carb_g * quantity) / 100).toFixed(2)} g</div>
+          </div>
         </div>
       ))}
+
+      <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-900 w-20 mt-10" onClick={handleAddButton}>
+        Add
+      </button>
 
       <ToastContainer />
     </div>
