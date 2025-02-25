@@ -14,7 +14,7 @@ function FoodDetails() {
     fibre_g: 0,
     energy_kcal: 0,
   });
-
+  
   useEffect(() => {
     if (location.state && location.state.foodData) {
       console.log("📥 Received food data:", location.state.foodData);
@@ -62,7 +62,7 @@ function FoodDetails() {
   const handleQuantityChange = (e) => {
     const value = Math.max(Number(e.target.value), 1);
     setQuantity(value);
-  };
+  };  
 
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">

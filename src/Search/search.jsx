@@ -11,35 +11,37 @@ const Search = ({onAddFood}) => {
   const [quantity, setQuantity] = useState(100); // Default quantity 100g
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Read and search food from Excel
   const handleSearch = async () => {
     toast.info("Remember to select the food again after updating the quantity!");
     try {
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
         "http://localhost:5000/api/analyze",
-        { food: search },
+        { food: search },  // Fix: change "food_name" to "food" to match backend
         { headers: { "Content-Type": "application/json" } }
       );
   
       console.log("📜 API Response:", response.data);
   
+      let foodData;
       if (response.data.nutritionData) {
-        const { calorie, carb, protein, fat, fiber } = response.data.nutritionData;
-        setResult([
-          {
-            food_name: formattedSearch.replace(/\b\w/g, (char) => char.toUpperCase()),
-            energy_kcal: calorie || 0,
-            fibre_g: fiber || 0,
-            fat_g: fat || 0,
-            protein_g: protein || 0,
-            carb_g: carb || 0
-          }
-        ]);
+        // If data comes from LLM
+        foodData = response.data.nutritionData;
       } else {
-        setResult([]);
-        toast.error("No results found. Try a different food item.");
+        // If data comes from Excel sheet
+        foodData = response.data;
       }
+  
+      setResult([
+        {
+          food_name: formattedSearch.replace(/\b\w/g, (char) => char.toUpperCase()),
+          energy_kcal: foodData.calorie || 0,
+          fibre_g: foodData.fiber || 0,
+          fat_g: foodData.fat || 0,
+          protein_g: foodData.protein || 0,
+          carb_g: foodData.carb || 0
+        }
+      ]);
     } catch (err) {
       console.error("❌ API Error:", err.response?.data || err.message);
       toast.error("Failed to fetch food data. Check the backend logs.");

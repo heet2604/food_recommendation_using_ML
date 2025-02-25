@@ -10,6 +10,7 @@ const bcrypt = require('bcrypt');
 const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
 const axios = require("axios");
+const xlsx = require("xlsx")
 
 
 const port = 5000;
@@ -111,9 +112,40 @@ app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
     }   
 })
 
+const loadData = () => {
+    try {
+        const workbook = xlsx.readFile("./public/Anuvaad_INDB_2024.11.xlsx");
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        foodDatabase = xlsx.utils.sheet_to_json(sheet); // Store data globally
+        console.log("✅ Excel food database loaded successfully");
+    } catch (err) {
+        console.error("❌ Error loading Excel file:", err);
+    }
+};
+
+
+loadData();
+
 app.post("/api/analyze",async (req,res)=>{
     try{
         const {food} = req.body;
+        if(!food) return res.status(400).json({message : "Food name is required"})
+
+        const foundFood = foodDatabase.find(f=>f.food_name.toLowerCase()===food.toLowerCase())
+        if(foundFood){
+            console.log("Found !!")
+            return res.json({
+                food : foundFood.food_name || 0,
+                calorie : foundFood.energy_kcal || 0,
+                carb : foundFood.carb_g || 0,
+                protein : foundFood.protein_g || 0,
+                fat : foundFood.fat_g || 0,
+                fiber : foundFood.fibre_g || 0
+            })
+            
+        }
+        console.log("Food not present in Excel sheet requesting LLM...")
         const response = await axios.post("https://api.together.xyz/v1/chat/completions",{model:"meta-llama/Llama-3.3-70B-Instruct-Turbo",
             messages : [
                 { role: "system", content: "You are a nutrition expert. Given a food description, return its estimated calories, carbs, protein, fat, and fiber in **strict JSON format**. NO markdown, no explanations, no additional text. ONLY valid JSON." },
