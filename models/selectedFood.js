@@ -12,9 +12,9 @@ const foodSchema = new mongoose.Schema(
     carb_g: Number,
     fat_g: Number,
     fibre_g: Number,
-    energy_kcal: Number,
+    energy_kcal: Number
   },
-  { collection: "foods", timestamps: true } // ✅ Correct placement
+  { collection: "foods", timestamps: true } 
 );
 
 module.exports = mongoose.model("Food", foodSchema);

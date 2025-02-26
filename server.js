@@ -80,7 +80,8 @@ app.post("/api/add-food", authMiddleware, async (req, res) => {
             energy_kcal,
             createdAt : new Date()
         });
-        console.log("Food created", food);
+        //console.log("Food created", food);
+        console.log("📥 Received food data:", req.body);
         res.json({ message: "Food added successfully", food });
     } catch (err) {
         console.error("Error adding food:", err);
@@ -111,6 +112,8 @@ app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
         res.status(500).json({message : "Server Error"})
     }   
 })
+
+let foodDatabase=[];
 
 const loadData = () => {
     try {

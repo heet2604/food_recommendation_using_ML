@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 
-const Search = ({onAddFood}) => {
+const Search = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [result, setResult] = useState([]);
@@ -31,7 +31,8 @@ const Search = ({onAddFood}) => {
         // If data comes from Excel sheet
         foodData = response.data;
       }
-  
+      
+      //const glycemicIndex = (39.71 + 0.548 * foodData.carb - 3.93 * foodData.fiber) + (foodData.protein + foodData.fat);
       setResult([
         {
           food_name: formattedSearch.replace(/\b\w/g, (char) => char.toUpperCase()),
@@ -39,9 +40,12 @@ const Search = ({onAddFood}) => {
           fibre_g: foodData.fiber || 0,
           fat_g: foodData.fat || 0,
           protein_g: foodData.protein || 0,
-          carb_g: foodData.carb || 0
+          carb_g: foodData.carb || 0,
+          // glycemic_index : glycemicIndex.toFixed(2)
         }
       ]);
+      
+
     } catch (err) {
       console.error("❌ API Error:", err.response?.data || err.message);
       toast.error("Failed to fetch food data. Check the backend logs.");
@@ -70,11 +74,12 @@ const Search = ({onAddFood}) => {
       fat_g: ((selectedFood.fat_g * quantity) / 100).toFixed(2),
       protein_g: ((selectedFood.protein_g * quantity) / 100).toFixed(2),
       carb_g: ((selectedFood.carb_g * quantity) / 100).toFixed(2),
+      //glycemic_index: selectedFood.glycemic_index,
       quantity: quantity,
     };
   
     console.log("📤 Storing food data:", foodWithQuantity);
-  
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/add-food",
