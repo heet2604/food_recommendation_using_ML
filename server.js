@@ -10,7 +10,8 @@ const bcrypt = require('bcrypt');
 const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
 const axios = require("axios");
-const xlsx = require("xlsx")
+const xlsx = require("xlsx");
+const Fuse = require("fuse.js")
 
 
 const port = 5000;
@@ -114,87 +115,109 @@ app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
 })
 
 let foodDatabase=[];
+let fuse; 
 
 const loadData = () => {
     try {
         const workbook = xlsx.readFile("./public/Anuvaad_INDB_2024.11.xlsx");
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
-        foodDatabase = xlsx.utils.sheet_to_json(sheet); // Store data globally
+        foodDatabase = xlsx.utils.sheet_to_json(sheet);
         console.log("✅ Excel food database loaded successfully");
+
+        // Initialize Fuse.js for fuzzy searching
+        fuse = new Fuse(foodDatabase, {
+            keys: ["food_name"], // Search based on food names
+            threshold: 0.2, // Sensitivity (lower = stricter matching)
+            distance: 100, // Allow minor differences
+        });
     } catch (err) {
         console.error("❌ Error loading Excel file:", err);
     }
 };
-
-
 loadData();
 
-app.post("/api/analyze",async (req,res)=>{
-    try{
-        const {food} = req.body;
-        if(!food) return res.status(400).json({message : "Food name is required"})
+app.post("/api/analyze", async (req, res) => {
+    try {
+        const { food } = req.body;
+        if (!food) return res.status(400).json({ message: "Food name is required" });
 
-        const foundFood = foodDatabase.find(f=>f.food_name.toLowerCase()===food.toLowerCase())
-        if(foundFood){
-            console.log("Found !!")
+        // Step 1: Try Exact Match
+        const foundFood = foodDatabase.find(f => f.food_name.toLowerCase() === food.toLowerCase());
+
+        // Step 2: If No Exact Match, Use Fuzzy Search
+        if (!foundFood) {
+            const fuzzyResults = fuse.search(food);
+            if (fuzzyResults.length > 0) {
+                const bestMatch = fuzzyResults[0].item; // Get the closest match
+                console.log(`🔍 Fuzzy match found: ${bestMatch.food_name}`);
+                return res.json({
+                    food: bestMatch.food_name || 0,
+                    calorie: bestMatch.energy_kcal || 0,
+                    carb: bestMatch.carb_g || 0,
+                    protein: bestMatch.protein_g || 0,
+                    fat: bestMatch.fat_g || 0,
+                    fiber: bestMatch.fibre_g || 0
+                });
+            }
+        } else {
+            console.log("✅ Exact match found!");
             return res.json({
-                food : foundFood.food_name || 0,
-                calorie : foundFood.energy_kcal || 0,
-                carb : foundFood.carb_g || 0,
-                protein : foundFood.protein_g || 0,
-                fat : foundFood.fat_g || 0,
-                fiber : foundFood.fibre_g || 0
-            })
-            
+                food: foundFood.food_name || 0,
+                calorie: foundFood.energy_kcal || 0,
+                carb: foundFood.carb_g || 0,
+                protein: foundFood.protein_g || 0,
+                fat: foundFood.fat_g || 0,
+                fiber: foundFood.fibre_g || 0
+            });
         }
-        console.log("Food not present in Excel sheet requesting LLM...")
-        const response = await axios.post("https://api.together.xyz/v1/chat/completions",{model:"meta-llama/Llama-3.3-70B-Instruct-Turbo",
-            messages : [
+
+        // Step 3: If No Match, Request LLM
+        console.log("❌ Food not found in Excel, requesting LLM...");
+        const response = await axios.post("https://api.together.xyz/v1/chat/completions", {
+            model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            messages: [
                 { role: "system", content: "You are a nutrition expert. Given a food description, return its estimated calories, carbs, protein, fat, and fiber in **strict JSON format**. NO markdown, no explanations, no additional text. ONLY valid JSON." },
                 { role: "user", content: `Provide estimated nutrition facts per 100g of ${food} in valid JSON format. ONLY return JSON, nothing else.` }
             ],
-            
-            max_tokens : 200,
-            temperature : 0.7
-        },
-        {
-            headers : {
-                "Authorization" :  `Bearer ${process.env.TOGETHER_API_KEY}`,
-                "Content-Type" : "application/json"
+            max_tokens: 200,
+            temperature: 0.7
+        }, {
+            headers: {
+                "Authorization": `Bearer ${process.env.TOGETHER_API_KEY}`,
+                "Content-Type": "application/json"
             }
         });
 
         let nutritionText = response.data.choices[0].message.content;
 
-        //Step 1 : Remove markdown formatting 
+        // Remove Markdown formatting (if any)
         nutritionText = nutritionText.replace(/```json|```/g, '').trim();
 
-        //Step 2 : Extract Macros 
-        const extractMacros = (text)=>{
-            try{
+        // Extract Macros
+        const extractMacros = (text) => {
+            try {
                 const parsedData = JSON.parse(text);
-                return{
-                    food : food,
-                    calorie : parsedData.calories || 0,
-                    carb : parsedData.carbs || 0,
-                    protein : parsedData.protein || 0,
-                    fat : parsedData.fat || 0,
-                    fiber : parsedData.fiber || 0
+                return {
+                    food: food,
+                    calorie: parsedData.calories || 0,
+                    carb: parsedData.carbs || 0,
+                    protein: parsedData.protein || 0,
+                    fat: parsedData.fat || 0,
+                    fiber: parsedData.fiber || 0
                 };
-            }
-            catch(err){
-                console.log("JSON parsing error",err);
+            } catch (err) {
+                console.log("❌ JSON parsing error", err);
                 return null;
             }
         };
+
         const nutritionData = extractMacros(nutritionText);
-        console.log("LLM respnse : ",nutritionText)
-        res.json({nutritionData})
-    }
-    catch(err){
-        console.log(err)
-        res.status(500).json({err : "Something went wrong"});
+        console.log("🤖 LLM response:", nutritionText);
+        res.json({ nutritionData });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Something went wrong" });
     }
 });
 
