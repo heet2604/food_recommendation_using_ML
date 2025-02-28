@@ -3,7 +3,8 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const userModel = require("./models/user");
+const UserDetails = require("./models/userDetails")
+const userModel = require("./models/user")
 const app = express();
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -85,32 +86,80 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
+//   try {
+//     const { height, weight, age, gender, activityLevel, weightGoal } = req.body;
+//     const userId = req.user.userId;
+
+//     // Validate input
+//     if (!height || !weight || !age || !gender || !activityLevel || !weightGoal) {
+//       return res.status(400).json({ message: "All fields are required." });
+//     }
+
+//     // Calculate BMI
+//     const bmi = calculateBMI(weight, height);
+
+//     // Calculate Maintenance Calories
+//     const maintenanceCalories = calculateMaintenanceCalories(weight, height, age, gender, activityLevel);
+
+//     // Adjust Calories Based on Weight Goal
+//     const adjustedCalories = maintenanceCalories + weightGoal * 7700 / 7;
+
+//     // Calculate Daily Macros
+//     const dailyMacros = calculateDailyMacros(weight, adjustedCalories);
+
+//     //create user details
+//     const userDetails = await UserDetails.create(
+      
+//       {
+//         userId,
+//         height,
+//         weight,
+//         age,
+//         gender,
+//         activityLevel,
+//         weightGoal,
+//         bmi,
+//         maintenanceCalories: adjustedCalories,
+//         dailyMacros,
+//       },
+//       { new: true }
+//     );
+
+//     res.status(200).json({ success: true, message: "Goals calculated and saved successfully!", userDetails });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+//   }
+// });
+
+
+
 app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
-  try {
-    const { height, weight, age, gender, activityLevel, weightGoal } = req.body;
-    const userId = req.user.userId;
-
-    // Validate input
-    if (!height || !weight || !age || !gender || !activityLevel || !weightGoal) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
-
-    // Calculate BMI
-    const bmi = calculateBMI(weight, height);
-
-    // Calculate Maintenance Calories
-    const maintenanceCalories = calculateMaintenanceCalories(weight, height, age, gender, activityLevel);
-
-    // Adjust Calories Based on Weight Goal
-    const adjustedCalories = maintenanceCalories + weightGoal * 7700 / 7;
-
-    // Calculate Daily Macros
-    const dailyMacros = calculateDailyMacros(weight, adjustedCalories);
-
-    // Update User Document
-    const user = await userModel.findByIdAndUpdate(
-      userId,
-      {
+    try {
+      const { height, weight, age, gender, activityLevel, weightGoal } = req.body;
+      const userId = req.user.userId;
+  
+      // Validate input
+      if (!height || !weight || !age || !gender || !activityLevel || !weightGoal) {
+        return res.status(400).json({ message: "All fields are required." });
+      }
+  
+      // Calculate BMI
+      const bmi = calculateBMI(weight, height);
+  
+      // Calculate Maintenance Calories
+      const maintenanceCalories = calculateMaintenanceCalories(weight, height, age, gender, activityLevel);
+  
+      // Adjust Calories Based on Weight Goal
+      const adjustedCalories = maintenanceCalories + weightGoal * 7700 / 7;
+  
+      // Calculate Daily Macros
+      const dailyMacros = calculateDailyMacros(weight, adjustedCalories);
+  
+      // Create user details
+      const userDetails = await UserDetails.create({
+        userId,
         height,
         weight,
         age,
@@ -120,16 +169,14 @@ app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
         bmi,
         maintenanceCalories: adjustedCalories,
         dailyMacros,
-      },
-      { new: true }
-    );
-
-    res.status(200).json({ success: true, message: "Goals calculated and saved successfully!", user });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
-  }
-});
+      });
+  
+      res.status(200).json({ success: true, message: "Goals calculated and saved successfully!", userDetails });
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+    }
+  });
 
 
 

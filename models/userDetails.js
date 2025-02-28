@@ -1,32 +1,25 @@
-// models/User.js
 const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
 
-const userSchema = new mongoose.Schema({
-  username: { type: String, required: true, unique: true }, // Unique username
-  password: { type: String, required: true }, // Hashed password
-  height: { type: Number }, // Height in cm
-  weight: { type: Number }, // Weight in kg
-  age: { type: Number }, // Age in years
-  gender: { type: String, enum: ["male", "female"] }, // Gender
-  activityLevel: { type: Number }, // Activity level multiplier
-  weightGoal: { type: Number }, // Weekly weight goal (kg/week)
-  bmi: { type: Number }, // Calculated BMI
-  maintenanceCalories: { type: Number }, // Daily maintenance calories
+const userDetailsSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }, // Reference to the User model
+  height: { type: Number, required: true },
+  weight: { type: Number, required: true },
+  age: { type: Number, required: true },
+  gender: { type: String, enum: ["male", "female"], required: true },
+  activityLevel: { type: Number, required: true },
+  weightGoal: { type: Number, required: true },
+  bmi: { type: Number, required: true },
+  maintenanceCalories: { type: Number, required: true },
   dailyMacros: {
-    protein: { type: Number }, // Protein in grams
-    carbs: { type: Number }, // Carbs in grams
-    fats: { type: Number }, // Fats in grams
-    fiber: { type: Number }, // Fiber in grams
+    protein: { type: Number, required: true },
+    carbs: { type: Number, required: true },
+    fats: { type: Number, required: true },
+    fiber: { type: Number, required: true },
   },
-});
+  createdAt: { type: Date, default: Date.now },
+  
+},
+{collection: "userDetails"},
+);
 
-// Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
-    this.password = await bcrypt.hash(this.password, 10);
-  }
-  next();
-});
-
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("UserDetails", userDetailsSchema);
