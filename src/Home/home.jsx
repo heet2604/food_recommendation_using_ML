@@ -6,15 +6,15 @@ import { useNavigate } from 'react-router-dom';
 
 export default function App() {
   const navigate = useNavigate();
-  useEffect(() => {
-    axios.get('http://localhost:5000/progress')
-      .then(response => {
-        console.log('Data fetched from backend:', response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios.get('http://localhost:5000/')
+  //     .then(response => {
+  //       console.log('Data fetched from backend:', response.data);
+  //     })
+  //     .catch(error => {
+  //       console.error('Error fetching data:', error);
+  //     });
+  // }, []);
 
   const dailyCalorieGoal = 2600; // Set the daily calorie goal
   const [calories, setCalories] = useState(1800);

@@ -11,6 +11,7 @@
   import User_details from './User_Details/user_details';
   import Search from './Search/search';
   import ProtectedRoute from './protectedRoute';
+  import CalcForm from "./CalcForm/CalcForm"
 
   function App() {
     return (
@@ -28,6 +29,7 @@
             <Route path="/recommendations" element={<ProtectedRoute><Recommendations/></ProtectedRoute>}/>
             <Route path="/user_details" element={<ProtectedRoute><User_details/></ProtectedRoute>}/>
             <Route path="/search" element={<ProtectedRoute><Search/></ProtectedRoute>}/>
+            <Route path="/calculateGoal" element={<ProtectedRoute><CalcForm/></ProtectedRoute>}/>
           </Routes>
         </Router>
       </div>
