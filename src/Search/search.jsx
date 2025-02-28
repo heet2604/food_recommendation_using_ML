@@ -17,7 +17,7 @@ const Search = () => {
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
         "http://localhost:5000/api/analyze",
-        { food: search },  // Fix: change "food_name" to "food" to match backend
+        { food: formattedSearch },  // Fix: change "food_name" to "food" to match backend
         { headers: { "Content-Type": "application/json" } }
       );
   
@@ -41,6 +41,7 @@ const Search = () => {
           fat_g: foodData.fat || 0,
           protein_g: foodData.protein || 0,
           carb_g: foodData.carb || 0,
+          glycemic_index : foodData.glycemic_index ?? null,
           // glycemic_index : glycemicIndex.toFixed(2)
         }
       ]);
@@ -74,7 +75,7 @@ const Search = () => {
       fat_g: ((selectedFood.fat_g * quantity) / 100).toFixed(2),
       protein_g: ((selectedFood.protein_g * quantity) / 100).toFixed(2),
       carb_g: ((selectedFood.carb_g * quantity) / 100).toFixed(2),
-      //glycemic_index: selectedFood.glycemic_index,
+      glycemic_index: selectedFood.glycemic_index ?? null,
       quantity: quantity,
     };
   

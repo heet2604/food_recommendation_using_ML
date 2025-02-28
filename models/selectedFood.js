@@ -13,7 +13,7 @@ const foodSchema = new mongoose.Schema(
     fat_g: Number,
     fibre_g: Number,
     energy_kcal: Number,
-    glycemic_index : Number
+    glycemic_index : {type : Number , default: null}
   },
   { collection: "foods", timestamps: true } 
 );
