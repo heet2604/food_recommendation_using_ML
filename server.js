@@ -86,53 +86,6 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
-//   try {
-//     const { height, weight, age, gender, activityLevel, weightGoal } = req.body;
-//     const userId = req.user.userId;
-
-//     // Validate input
-//     if (!height || !weight || !age || !gender || !activityLevel || !weightGoal) {
-//       return res.status(400).json({ message: "All fields are required." });
-//     }
-
-//     // Calculate BMI
-//     const bmi = calculateBMI(weight, height);
-
-//     // Calculate Maintenance Calories
-//     const maintenanceCalories = calculateMaintenanceCalories(weight, height, age, gender, activityLevel);
-
-//     // Adjust Calories Based on Weight Goal
-//     const adjustedCalories = maintenanceCalories + weightGoal * 7700 / 7;
-
-//     // Calculate Daily Macros
-//     const dailyMacros = calculateDailyMacros(weight, adjustedCalories);
-
-//     //create user details
-//     const userDetails = await UserDetails.create(
-      
-//       {
-//         userId,
-//         height,
-//         weight,
-//         age,
-//         gender,
-//         activityLevel,
-//         weightGoal,
-//         bmi,
-//         maintenanceCalories: adjustedCalories,
-//         dailyMacros,
-//       },
-//       { new: true }
-//     );
-
-//     res.status(200).json({ success: true, message: "Goals calculated and saved successfully!", userDetails });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
-//   }
-// });
-
 
 
 app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
