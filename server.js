@@ -10,8 +10,8 @@ const bcrypt = require('bcrypt');
 const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
 const axios = require("axios");
-const xlsx = require("xlsx");
-const Fuse = require("fuse.js")
+// const xlsx = require("xlsx");
+// const Fuse = require("fuse.js")
 
 
 const port = 5000;
@@ -64,41 +64,37 @@ app.post('/login', async (req, res) => {
 });
 
 app.post("/api/add-food", authMiddleware, async (req, res) => {
-    const { food_name, protein_g, carb_g, fat_g, fibre_g, energy_kcal } = req.body;
+    const { food_name, protein_g, carb_g, fat_g, fibre_g, energy_kcal, glycemic_index } = req.body;
 
     if (!food_name) {
         return res.status(400).json({ message: "No food selected!" });
     }
 
+    if (!req.user || !req.user.userId) {
+        return res.status(401).json({ message: "Unauthorized: No user found!" });
+    }
+
     try {
         const food = await Food.create({
-            userId: req.user.userId, // Correct usage of userId from JWT payload
+            userId: req.user.userId,
             food_name,
             protein_g,
             carb_g,
             fat_g,
             fibre_g,
             energy_kcal,
-            createdAt : new Date()
+            glycemic_index: glycemic_index !== undefined ? glycemic_index : null,
+            createdAt: new Date()
         });
-        //console.log("Food created", food);
+
         console.log("📥 Received food data:", req.body);
         res.json({ message: "Food added successfully", food });
     } catch (err) {
-        console.error("Error adding food:", err);
-        res.status(500).json({ message: "Error adding food" });
+        console.error("🚨 Error adding food:", err.message, err.stack);
+        res.status(500).json({ message: "Error adding food", error: err.message });
     }
 });
 
-app.get("/api/selected-food", authMiddleware, async (req, res) => {
-    try {
-        const foods = await Food.find({ userId: req.user.userId }); // Correct usage of userId from JWT payload
-        res.json(foods);
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Error fetching foods" });
-    }
-});
 
 app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
     //const {userId} = req.params;
@@ -114,28 +110,28 @@ app.get("/api/latest-food/:userId",authMiddleware,async (req,res)=>{
     }   
 })
 
-let foodDatabase=[];
-let fuse; 
+// let foodDatabase=[];
+// let fuse = null;
 
-const loadData = () => {
-    try {
-        const workbook = xlsx.readFile("./public/Anuvaad_INDB_2024.11.xlsx");
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        foodDatabase = xlsx.utils.sheet_to_json(sheet);
-        console.log("✅ Excel food database loaded successfully");
+// const loadData = () => {
+//     try {
+//         const workbook = xlsx.readFile("./public/Anuvaad_INDB_2024.11.xlsx");
+//         const sheetName = workbook.SheetNames[0];
+//         const sheet = workbook.Sheets[sheetName];
+//         foodDatabase = xlsx.utils.sheet_to_json(sheet);
+//         console.log("✅ Excel food database loaded successfully");
 
-        // Initialize Fuse.js for fuzzy searching
-        fuse = new Fuse(foodDatabase, {
-            keys: ["food_name"], // Search based on food names
-            threshold: 0.2, // Sensitivity (lower = stricter matching)
-            distance: 100, // Allow minor differences
-        });
-    } catch (err) {
-        console.error("❌ Error loading Excel file:", err);
-    }
-};
-loadData();
+//         // Initialize Fuse.js for fuzzy searching
+//         fuse = new Fuse(foodDatabase, {
+//             keys: ["food_name"], // Search based on food names
+//             threshold: 0.2, // Sensitivity (lower = stricter matching)
+//             distance: 100, // Allow minor differences
+//         });
+//     } catch (err) {
+//         console.error("❌ Error loading Excel file:", err);
+//     }
+// };
+// loadData();
 
 app.post("/api/analyze", async (req, res) => {
     try {
@@ -143,42 +139,44 @@ app.post("/api/analyze", async (req, res) => {
         if (!food) return res.status(400).json({ message: "Food name is required" });
 
         // Step 1: Try Exact Match
-        const foundFood = foodDatabase.find(f => f.food_name.toLowerCase() === food.toLowerCase());
+        //let foundFood = foodDatabase.find(f => f.food_name.toLowerCase() === food.toLowerCase());
 
-        // Step 2: If No Exact Match, Use Fuzzy Search
-        if (!foundFood) {
-            const fuzzyResults = fuse.search(food);
-            if (fuzzyResults.length > 0) {
-                const bestMatch = fuzzyResults[0].item; // Get the closest match
-                console.log(`🔍 Fuzzy match found: ${bestMatch.food_name}`);
-                return res.json({
-                    food: bestMatch.food_name || 0,
-                    calorie: bestMatch.energy_kcal || 0,
-                    carb: bestMatch.carb_g || 0,
-                    protein: bestMatch.protein_g || 0,
-                    fat: bestMatch.fat_g || 0,
-                    fiber: bestMatch.fibre_g || 0
-                });
-            }
-        } else {
-            console.log("✅ Exact match found!");
-            return res.json({
-                food: foundFood.food_name || 0,
-                calorie: foundFood.energy_kcal || 0,
-                carb: foundFood.carb_g || 0,
-                protein: foundFood.protein_g || 0,
-                fat: foundFood.fat_g || 0,
-                fiber: foundFood.fibre_g || 0
-            });
-        }
+        // // Step 2: If No Exact Match, Use Fuzzy Search
+        // if (!foundFood) {
+        //     const fuzzyResults = fuse.search(food);
+        //     if (fuzzyResults.length > 0) {
+        //         foundFood = fuzzyResults[0].item; // Get the closest match
+        //         console.log(`🔍 Fuzzy match found: ${foundFood.food_name}`);
+        //     }
+        // } 
+        //if(foundFood){
+            // let glycemicIndex = null;
+            // if (foundFood.carb_g !== undefined && foundFood.fibre_g !== undefined) {
+            //     glycemicIndex = (39.71 + 0.548 * (foundFood.carb_g / 100) * 100 - 
+            //                      3.93 * (foundFood.fibre_g / 100) * 100) + 
+            //                     ((foundFood.protein_g || 0) + (foundFood.fat_g || 0));
+            //     glycemicIndex = glycemicIndex.toFixed(2);
+            // }            
+            
+        //     console.log("✅ Exact match found!");
+        //     return res.json({
+        //         food: foundFood.food_name || 0,
+        //         calorie: foundFood.energy_kcal || 0,
+        //         carb: foundFood.carb_g || 0,
+        //         protein: foundFood.protein_g || 0,
+        //         fat: foundFood.fat_g || 0,
+        //         fiber: foundFood.fibre_g || 0,
+        //         glycemicIndex : glycemicIndex ? glycemicIndex : null
+        //     });   
+        // }
 
         // Step 3: If No Match, Request LLM
-        console.log("❌ Food not found in Excel, requesting LLM...");
+        console.log(" requesting LLM...");
         const response = await axios.post("https://api.together.xyz/v1/chat/completions", {
             model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
             messages: [
-                { role: "system", content: "You are a nutrition expert. Given a food description, return its estimated calories, carbs, protein, fat, and fiber in **strict JSON format**. NO markdown, no explanations, no additional text. ONLY valid JSON." },
-                { role: "user", content: `Provide estimated nutrition facts per 100g of ${food} in valid JSON format. ONLY return JSON, nothing else.` }
+                { role: "system", content: "You are a nutrition expert. Given a food description, return its estimated calories, carbs, protein, fat ,fiber and glycemic index in **strict JSON format**. NO markdown, no explanations, no additional text. ONLY valid JSON." },
+                { role: "user", content: `Provide estimated nutrition facts per 100g of ${food},including glycemic index of that food in valid JSON format. ONLY return JSON, nothing else.` }
             ],
             max_tokens: 200,
             temperature: 0.7
@@ -204,7 +202,8 @@ app.post("/api/analyze", async (req, res) => {
                     carb: parsedData.carbs || 0,
                     protein: parsedData.protein || 0,
                     fat: parsedData.fat || 0,
-                    fiber: parsedData.fiber || 0
+                    fiber: parsedData.fiber || 0,
+                    glycemic_index: parsedData.glycemic_index !== undefined ? parsedData.glycemic_index : null,
                 };
             } catch (err) {
                 console.log("❌ JSON parsing error", err);
@@ -223,4 +222,4 @@ app.post("/api/analyze", async (req, res) => {
 
 app.listen(port, () => {
     console.log(`Live at port ${port}`);
-});
+}); 
