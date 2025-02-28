@@ -11,7 +11,8 @@
   import User_details from './User_Details/user_details';
   import Search from './Search/search';
   import ProtectedRoute from './protectedRoute';
-  import CalcForm from "./CalcForm/CalcForm"
+  import CalcForm from "./CalcForm/CalcForm";
+  import ProfilePage from "./Profile/profile";
 
   function App() {
     return (
@@ -30,6 +31,7 @@
             <Route path="/user_details" element={<ProtectedRoute><User_details/></ProtectedRoute>}/>
             <Route path="/search" element={<ProtectedRoute><Search/></ProtectedRoute>}/>
             <Route path="/calculateGoal" element={<ProtectedRoute><CalcForm/></ProtectedRoute>}/>
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}></Route>
           </Routes>
         </Router>
       </div>
