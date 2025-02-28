@@ -284,7 +284,7 @@ app.post("/api/analyze", async (req, res) => {
 
     let nutritionText = response.data.choices[0].message.content.trim();
     console.log("Raw LLM Response:", nutritionText); // Debugging log
-
+    
     const extractMacros = (text) => {
       try {
         const parsedData = JSON.parse(text);
@@ -295,14 +295,13 @@ app.post("/api/analyze", async (req, res) => {
           protein: parsedData.protein || 0,
           fat: parsedData.fat || 0,
           fiber: parsedData.fiber || 0,
-          glycemicIndex: parsedData.glycemic_index ?? null,
+          glycemic_index: parsedData.glycemic_index ?? null, // ✅ Explicitly map
         };
       } catch (err) {
         console.log("JSON parsing error", err);
         return null;
       }
     };
-
     const nutritionData = extractMacros(nutritionText);
     if (!nutritionData) {
       return res.status(500).json({ error: "Failed to extract nutrition data" });
