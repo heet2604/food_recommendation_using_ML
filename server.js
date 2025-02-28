@@ -137,46 +137,50 @@ app.post("/login", async (req, res) => {
 
 app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
     try {
-      const { height, weight, age, gender, activityLevel, weightGoal } = req.body;
-      const userId = req.user.userId;
-  
-      // Validate input
-      if (!height || !weight || !age || !gender || !activityLevel || !weightGoal) {
-        return res.status(400).json({ message: "All fields are required." });
-      }
-  
-      // Calculate BMI
-      const bmi = calculateBMI(weight, height);
-  
-      // Calculate Maintenance Calories
-      const maintenanceCalories = calculateMaintenanceCalories(weight, height, age, gender, activityLevel);
-  
-      // Adjust Calories Based on Weight Goal
-      const adjustedCalories = maintenanceCalories + weightGoal * 7700 / 7;
-  
-      // Calculate Daily Macros
-      const dailyMacros = calculateDailyMacros(weight, adjustedCalories);
-  
-      // Create user details
-      const userDetails = await UserDetails.create({
-        userId,
-        height,
-        weight,
-        age,
-        gender,
-        activityLevel,
-        weightGoal,
-        bmi,
-        maintenanceCalories: adjustedCalories,
-        dailyMacros,
-      });
-  
-      res.status(200).json({ success: true, message: "Goals calculated and saved successfully!", userDetails });
+        const { height, weight, age, gender, activityLevel, weightGoal } = req.body;
+        const userId = req.user.userId;
+
+        // Validate input
+        if (!height || !weight || !age || !gender || !activityLevel || !weightGoal) {
+            return res.status(400).json({ message: "All fields are required." });
+        }
+
+        // Calculate BMI
+        const bmi = calculateBMI(weight, height);
+
+        // Calculate Maintenance Calories
+        const maintenanceCalories = calculateMaintenanceCalories(weight, height, age, gender, activityLevel);
+
+        // Adjust Calories Based on Weight Goal
+        const adjustedCalories = maintenanceCalories + (weightGoal * 7700) / 7;
+
+        // Calculate Daily Macros
+        const dailyMacros = calculateDailyMacros(weight, adjustedCalories);
+
+        // Check if user details already exist, then update, else create new
+        const updatedUserDetails = await UserDetails.findOneAndUpdate(
+            { userId }, // Find user by userId
+            {
+                height,
+                weight,
+                age,
+                gender,
+                activityLevel,
+                weightGoal,
+                bmi,
+                maintenanceCalories: adjustedCalories,
+                dailyMacros
+            },
+            { new: true, upsert: true } // If not found, create a new one
+        );
+
+        res.status(200).json({ success: true, message: "Goals updated successfully!", userDetails: updatedUserDetails });
     } catch (error) {
-      console.error("Error:", error);
-      res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+        console.error("Error:", error);
+        res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
     }
-  });
+});
+
 
 
 
