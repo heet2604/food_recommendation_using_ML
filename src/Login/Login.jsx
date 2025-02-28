@@ -20,7 +20,7 @@ function Login() {
       localStorage.setItem("userId",response.data.userId);
       toast("Login Successfull !")
       setTimeout(() => {
-        navigate("/home")
+        navigate("/calculateGoal")
       }, 1500);
       console.log(response.data);
     } catch (err) {
