@@ -1,40 +1,69 @@
 import React, { useState, useEffect } from "react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-import axios from 'axios'
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 export default function App() {
   const navigate = useNavigate();
-  // useEffect(() => {
-  //   axios.get('http://localhost:5000/')
-  //     .then(response => {
-  //       console.log('Data fetched from backend:', response.data);
-  //     })
-  //     .catch(error => {
-  //       console.error('Error fetching data:', error);
-  //     });
-  // }, []);
 
-  const dailyCalorieGoal = 2600; // Set the daily calorie goal
-  const [calories, setCalories] = useState(1800);
+  // State for fetched goals
+  const [dailyGoals, setDailyGoals] = useState({
+    dailyGoalCalories: 2600, // Default value
+    dailyGoalProtein: 100,
+    dailyGoalCarbs: 170,
+    dailyGoalFats: 80,
+    dailyGoalFiber: 15,
+  });
+
+  const [calories, setCalories] = useState(1800); // Current calories consumed
   const [nutrients, setNutrients] = useState({
-    Protein: 100, // In grams
+    Protein: 60, // In grams
     Fiber: 15,
     Carbs: 170,
-    Fats: 80,
+    Fats: 20,
   });
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // Fetch goals from the backend
+  useEffect(() => {
+    const fetchGoal = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/fetchGoal", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Send JWT if required
+          },
+        });
+
+        if (response.data.success) {
+          const { maintenanceCalories, dailyMacros } = response.data.userDetails;
+          setDailyGoals({
+            dailyGoalCalories: maintenanceCalories,
+            dailyGoalProtein: dailyMacros.protein,
+            dailyGoalCarbs: dailyMacros.carbs,
+            dailyGoalFats: dailyMacros.fats,
+            dailyGoalFiber: dailyMacros.fiber,
+          });
+        }
+        console.log("Fetched Goal Data:", response.data); // Log the response
+      } catch (err) {
+        console.error("Error fetching goal:", err);
+      }
+    };
+
+    fetchGoal();
+  }, []);
 
   // Convert nutrients into data for the pie chart
   const nutrientData = Object.entries(nutrients).map(([key, value]) => ({
     name: key,
     value,
+    maxValue: dailyGoals[`dailyGoal${key}`], // Dynamically get the max value for each nutrient
   }));
 
   // Calculate the percentage of calories consumed
-  const caloriePercentage = (calories / dailyCalorieGoal) * 100;
+  const caloriePercentage = (calories / dailyGoals.dailyGoalCalories) * 100;
 
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
@@ -91,12 +120,12 @@ export default function App() {
               text={`${Math.round(caloriePercentage)}%`}
               styles={buildStyles({
                 textColor: "#fff",
-                pathColor: caloriePercentage <= 150 ? "#32CD32" : "#FF0000",
+                pathColor: calories > dailyGoals.dailyGoalCalories ? "#FF0000" : "#32CD32", // Red if exceeded
                 trailColor: "#d6d6d6",
               })}
             />
             <div className="text-center mt-2">
-              Calories: {calories} / {dailyCalorieGoal}
+              Calories: {calories} / {dailyGoals.dailyGoalCalories}
             </div>
           </div>
           <br />
@@ -108,19 +137,17 @@ export default function App() {
               <div key={index} className="w-full mb-4">
                 <div className="flex justify-between text-sm mb-2">
                   <span>{nutrient.name}</span>
-                  <span>{nutrient.value}g</span>
+                  <span>
+                    {nutrient.value}g / {nutrient.maxValue}g
+                  </span>
                 </div>
                 <div className="w-full bg-gray-700 h-5 rounded-full relative overflow-hidden">
                   <div
                     className="h-5 rounded-full absolute top-0 left-0 transition-all duration-500"
                     style={{
-                      width: `${(nutrient.value / 100) * 100}%`,
+                      width: `${(nutrient.value / nutrient.maxValue) * 100}%`,
                       backgroundColor:
-                        (nutrient.name === "Protein" && nutrient.value <= 150) ||
-                          (nutrient.name === "Fiber" && nutrient.value <= 30) ||
-                          (nutrient.name === "Carbs" && nutrient.value <= 210) ||
-                          (nutrient.name === "Fats" && nutrient.value <= 100)
-                          ? "#32CD32" : "#FF0000",
+                        nutrient.value > nutrient.maxValue ? "#FF0000" : "#32CD32", // Red if exceeded
                     }}
                   ></div>
                 </div>
@@ -172,7 +199,6 @@ export default function App() {
               </button>
             </div>
           </div>
-
         </div>
       </div>
     </div>

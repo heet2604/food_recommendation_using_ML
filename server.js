@@ -13,6 +13,7 @@ const Food = require("./models/selectedFood");
 const axios = require("axios");
 const xlsx = require("xlsx");
 const { parse } = require("dotenv");
+const userDetails = require("./models/userDetails");
 
 const port = 5000;
 app.use(express.json());
@@ -43,13 +44,28 @@ const calculateMaintenanceCalories = (weight, height, age, gender, activityLevel
   return Math.round(bmr * activityLevel);
 };
 
+// const calculateDailyMacros = (weight, maintenanceCalories) => {
+//   const protein = Math.round(weight * 1); // 1g protein/kg body weight
+//   const fats = Math.round((maintenanceCalories * 0.25) / 9); // 25% of calories from fats
+//   const carbs = Math.round((maintenanceCalories - (protein * 4 + fats * 9)) / 4); // Remaining calories from carbs
+//   const fiber = Math.round(weight * 0.014); // 14g fiber per 1000 calories
+//   return { protein, carbs, fats, fiber };
+// };
+
 const calculateDailyMacros = (weight, maintenanceCalories) => {
   const protein = Math.round(weight * 1); // 1g protein/kg body weight
   const fats = Math.round((maintenanceCalories * 0.25) / 9); // 25% of calories from fats
   const carbs = Math.round((maintenanceCalories - (protein * 4 + fats * 9)) / 4); // Remaining calories from carbs
-  const fiber = Math.round(weight * 0.014); // 14g fiber per 1000 calories
+  const fiber = Math.round((maintenanceCalories / 1000) * 14); // 14g fiber per 1000 calories
   return { protein, carbs, fats, fiber };
 };
+
+
+
+
+
+
+
 
 // Routes
 app.post("/signup", async (req, res) => {
@@ -137,6 +153,11 @@ app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
 
 
 
+
+
+
+
+
 app.use(express.static("public"));
 
 
@@ -192,21 +213,6 @@ app.get("/api/latest-food/:userId", authMiddleware, async (req, res) => {
   }
 });
 
-// let foodDatabase = [];
-
-// const loadData = () => {
-//   try {
-//     const workbook = xlsx.readFile("./public/Anuvaad_INDB_2024.11.xlsx");
-//     const sheetName = workbook.SheetNames[0];
-//     const sheet = workbook.Sheets[sheetName];
-//     foodDatabase = xlsx.utils.sheet_to_json(sheet);
-//     console.log("✅ Excel food database loaded successfully");
-//   } catch (err) {
-//     console.error("❌ Error loading Excel file:", err);
-//   }
-// };
-
-// loadData();
 
 app.post("/api/analyze", async (req, res) => {
   try {
@@ -269,6 +275,41 @@ app.post("/api/analyze", async (req, res) => {
   } catch (err) {
     console.log("Error:", err);
     res.status(500).json({ err: "Something went wrong" });
+  }
+});
+
+app.get("/api/fetchGoal", authMiddleware, async (req, res) => {
+  try {
+    // Ensure the user is authenticated and userId is available
+    if (!req.user || !req.user.userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Fetch user details from the UserDetails collection
+    const userDetails = await UserDetails.findOne({ userId: req.user.userId });
+
+    if (!userDetails) {
+      return res.status(404).json({ error: "User details not found" });
+    }
+
+    // Return the user's goals and details
+    res.status(200).json({
+      success: true,
+      userDetails: {
+        height: userDetails.height,
+        weight: userDetails.weight,
+        age: userDetails.age,
+        gender: userDetails.gender,
+        activityLevel: userDetails.activityLevel,
+        weightGoal: userDetails.weightGoal,
+        bmi: userDetails.bmi,
+        maintenanceCalories: userDetails.maintenanceCalories,
+        dailyMacros: userDetails.dailyMacros,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
