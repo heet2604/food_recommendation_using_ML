@@ -18,7 +18,12 @@ const userDetails = require("./models/userDetails");
 const port = 5000;
 app.use(express.json());
 
-app.use(cors());
+app.use(
+  cors({
+      origin: "http://localhost:3000", // 👈 Allow requests from your frontend
+      credentials: true,  // 👈 Allow cookies/sessions with requests
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -62,21 +67,16 @@ const calculateDailyMacros = (weight, maintenanceCalories) => {
 
 
 
-
-
-
-
-
 // Routes
 app.post("/signup", async (req, res) => {
   try {
-    let { username, email, password } = req.body;
+    let { firstname,lastname,contact, username, email, password } = req.body;
     let existinguser = await userModel.findOne({ email });
     if (existinguser) {
       return res.status(400).send("User already exists");
     }
     const hashed = await bcrypt.hash(password, 10);
-    const user = await userModel.create({ username, email, password: hashed });
+    const user = await userModel.create({firstname,lastname,contact, username, email, password: hashed });
     res.status(201).send(user);
   } catch (err) {
     console.log(err);
@@ -312,6 +312,39 @@ app.get("/api/fetchGoal", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+app.get("/profile", async (req, res) => {
+  try {
+      const userId = req.user._id; // Replace with actual authentication logic
+      const user = await userModel.findById(userId).select("-password");
+      if (!user) return res.status(404).json({ error: "User not found" });
+      res.json(user);
+  } catch (err) {
+      res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.put("/profile", async (req, res) => {
+  try {
+      const userId = req.user._id; // Replace with actual authentication logic
+      const { firstName, lastName, contact } = req.body;
+
+      const updatedUser = await userModel.findByIdAndUpdate(
+          userId,
+          { firstName, lastName, contact },
+          { new: true } // Returns updated user
+      );
+
+      if (!updatedUser) {
+          return res.status(404).json({ error: "User not found" });
+      }
+
+      res.json(updatedUser);
+  } catch (err) {
+      res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 app.listen(port, () => {
   console.log(`Live at port ${port}`);
