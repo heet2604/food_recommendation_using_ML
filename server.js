@@ -11,9 +11,10 @@ const bcrypt = require("bcrypt");
 const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
 const axios = require("axios");
-const xlsx = require("xlsx");
-const { parse } = require("dotenv");
-const userDetails = require("./models/userDetails");
+// const authMiddleware = require("./middleware/authMiddleware");
+// const xlsx = require("xlsx");
+// const { parse } = require("dotenv");
+// const userDetails = require("./models/userDetails");
 
 const port = 5000;
 app.use(express.json());
@@ -149,13 +150,6 @@ app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
         res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
     }
 });
-
-
-
-
-
-
-
 
 
 app.use(express.static("public"));
@@ -313,9 +307,9 @@ app.get("/api/fetchGoal", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", authMiddleware,async (req, res) => {
   try {
-      const userId = req.user._id; // Replace with actual authentication logic
+      const userId = req.user.id; // Replace with actual authentication logic
       const user = await userModel.findById(userId).select("-password");
       if (!user) return res.status(404).json({ error: "User not found" });
       res.json(user);
@@ -324,9 +318,9 @@ app.get("/profile", async (req, res) => {
   }
 });
 
-app.put("/profile", async (req, res) => {
+app.put("/profile", authMiddleware,async (req, res) => {
   try {
-      const userId = req.user._id; // Replace with actual authentication logic
+      const userId = req.user.id; // Replace with actual authentication logic
       const { firstName, lastName, contact } = req.body;
 
       const updatedUser = await userModel.findByIdAndUpdate(

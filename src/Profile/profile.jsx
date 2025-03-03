@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
     const [user, setUser] = useState({
         firstName: "",
         lastName: "",
@@ -15,7 +17,11 @@ const ProfilePage = () => {
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                const response = await axios.get("http://localhost:5000/profile", { withCredentials: true });
+                const token = localStorage.getItem("token")
+                const response = await axios.get("http://localhost:5000/profile",{
+                    headers : {Authorization: `Bearer ${token}`},
+                    withCredentials: true,
+                });
                 setUser(response.data);
             } catch (error) {
                 console.error("Error fetching user data:", error);
@@ -34,9 +40,13 @@ const ProfilePage = () => {
     // Save changes
     const handleSave = async () => {
         try {
-            await axios.put("http://localhost:5000/profile", user, { withCredentials: true });
-            setIsEditing(false);
-            alert("Profile updated successfully!");
+            const token = localStorage.getItem("token")
+            await axios.put("http://localhost:5000/profile", user, { 
+            headers : {Authorization : `Bearer ${token}`},
+            withCredentials: true ,
+        });
+        setIsEditing(false);
+        alert("Profile updated successfully!");
         } catch (error) {
             console.error("Error updating profile:", error);
         }
@@ -44,9 +54,10 @@ const ProfilePage = () => {
 
     // Logout user
     const handleLogout = () => {
-        console.log("Logging out...");
-        // Perform logout logic here
+        localStorage.removeItem("token"); // Clear token
+        navigate("/login"); // Redirect to login page
     };
+    
 
     return (
         <div className="flex justify-center items-center bg-gradient-to-b from-gray-900 to-black text-white min-h-screen p-6">
