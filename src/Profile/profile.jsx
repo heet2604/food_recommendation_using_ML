@@ -6,8 +6,8 @@ import { ToastContainer , toast } from "react-toastify";
 const ProfilePage = () => {
     const navigate = useNavigate();
     const [user, setUser] = useState({
-        firstName: "",
-        lastName: "",
+        firstname: "",
+        lastname: "",
         email: "",
         contact: "",
     });
@@ -43,8 +43,8 @@ const ProfilePage = () => {
         try {
             const token = localStorage.getItem("token")
             const updatedProfile = {
-                firstname : user.firstName,
-                lastname : user.lastName,
+                firstname : user.firstname,
+                lastname : user.lastname,
                 contact : user.contact
             }
             await axios.put("http://localhost:5000/profile", updatedProfile, { 
@@ -71,7 +71,7 @@ const ProfilePage = () => {
                 <h1 className="text-3xl font-extrabold text-center mb-6">User Profile</h1>
 
                 {/* Input fields */}
-                {["firstName", "lastName", "email", "contact"].map((field) => (
+                {["firstname", "lastname", "email", "contact"].map((field) => (
                     <input
                         key={field}
                         type={field === "email" ? "email" : "text"}
