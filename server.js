@@ -307,37 +307,42 @@ app.get("/api/fetchGoal", authMiddleware, async (req, res) => {
   }
 });
 
-app.get("/profile", authMiddleware,async (req, res) => {
+app.get("/profile", authMiddleware, async (req, res) => {
   try {
-      const userId = req.user.id; // Replace with actual authentication logic
-      const user = await userModel.findById(userId).select("-password");
-      if (!user) return res.status(404).json({ error: "User not found" });
-      res.json(user);
+    const userId = req.user.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized access" });
+
+    const user = await userModel.findById(userId).select("-password");
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user);
   } catch (err) {
-      res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
-app.put("/profile", authMiddleware,async (req, res) => {
+app.put("/profile", authMiddleware, async (req, res) => {
   try {
-      const userId = req.user.id; // Replace with actual authentication logic
-      const { firstName, lastName, contact } = req.body;
+    const userId = req.user.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized access" });
 
-      const updatedUser = await userModel.findByIdAndUpdate(
-          userId,
-          { firstName, lastName, contact },
-          { new: true } // Returns updated user
-      );
+    const { firstname, lastname, contact } = req.body; // Match frontend field names
 
-      if (!updatedUser) {
-          return res.status(404).json({ error: "User not found" });
-      }
+    const updatedUser = await userModel.findByIdAndUpdate(
+      userId,
+      { firstname, lastname, contact },
+      { new: true, runValidators: true } // Ensure validation is applied
+    );
 
-      res.json(updatedUser);
+    if (!updatedUser) return res.status(404).json({ error: "User not found" });
+
+    res.json(updatedUser);
   } catch (err) {
-      res.status(500).json({ error: "Server error" });
+    console.error("Error updating profile:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 app.listen(port, () => {

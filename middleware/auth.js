@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 module.exports = (req, res, next) => {
@@ -9,11 +9,10 @@ module.exports = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token.replace("Bearer ", ""), JWT_SECRET); // Remove "Bearer " before verifying
-    req.user = decoded; // Attach the decoded token (which includes userId) to req.user
+    const decoded = jwt.verify(token.replace("Bearer ", ""), JWT_SECRET);
+    req.user = { userId: decoded.userId }; // Ensure it sets userId correctly
     next();
   } catch (err) {
     res.status(400).json({ message: "Invalid token" });
   }
 };
-

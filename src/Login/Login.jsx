@@ -18,7 +18,7 @@ function Login() {
       });
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId",response.data.userId);
-      toast("Login Successfull !")
+      toast.success("Login Successfull !")
       setTimeout(() => {
         navigate("/calculateGoal")
       }, 1500);
@@ -26,7 +26,7 @@ function Login() {
     } catch (err) {
       console.log(err);
       //setMessage("Failed");
-      toast("Something went wrong !")
+      toast.error("Something went wrong !")
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer , toast } from "react-toastify";
 
 const ProfilePage = () => {
     const navigate = useNavigate();
@@ -41,12 +42,17 @@ const ProfilePage = () => {
     const handleSave = async () => {
         try {
             const token = localStorage.getItem("token")
-            await axios.put("http://localhost:5000/profile", user, { 
+            const updatedProfile = {
+                firstname : user.firstName,
+                lastname : user.lastName,
+                contact : user.contact
+            }
+            await axios.put("http://localhost:5000/profile", updatedProfile, { 
             headers : {Authorization : `Bearer ${token}`},
             withCredentials: true ,
         });
         setIsEditing(false);
-        alert("Profile updated successfully!");
+        toast.success("Profile updated !")
         } catch (error) {
             console.error("Error updating profile:", error);
         }
@@ -104,6 +110,7 @@ const ProfilePage = () => {
                     </button>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 };
