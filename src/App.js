@@ -1,9 +1,9 @@
   import React from 'react';
   import './index.css';
   import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-  import Landing from './Landing/landing.tsx';
-  import Login from './Login/Login.tsx';
-  import Signup from './Signup/Signup.tsx';
+  import Landing from './Landing/landing.jsx';
+  import Login from './Login/Login.jsx';
+  import Signup from './Signup/Signup.jsx';
   import Home from './Home/home';
   import Vitals from './Vitals/vitals';
   import FoodDetails from './FoodDetails/food_details';

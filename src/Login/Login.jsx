@@ -99,7 +99,6 @@ import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeaf } from "@fortawesome/free-solid-svg-icons";
 
-
 const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
@@ -112,7 +111,7 @@ const Login = () => {
     setMounted(true);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!username || !password) {
@@ -153,7 +152,6 @@ const Login = () => {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full opacity-10 filter blur-3xl"></div>
       </div>
 
-
       <div
         className={`mt-7 absolute top-10 left-1/2 transform -translate-x-1/2 transition-all duration-700 ease-out ${mounted ? "opacity-100" : "opacity-0 -translate-y-10"
           }`}
@@ -176,12 +174,11 @@ const Login = () => {
         </div>
       </div>
 
-
       {/* Login container */}
       <div className={`relative z-10 transition-all duration-1000 ease-out ${mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`} style={{ transitionDelay: "200ms" }}>
         <div className="bg-white bg-opacity-10 backdrop-blur-lg backdrop-filter border border-white border-opacity-20 shadow-xl p-10 rounded-2xl w-[26rem] mx-4">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-light text-white tracking-wide">LOGIN</h2>
+            <h2 className="text-3xl font-light text-white tracking-wide">Login</h2>
             <p className="text-white text-opacity-70 mt-2 text-sm">
               Enter your credentials to continue
             </p>

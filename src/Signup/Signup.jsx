@@ -152,7 +152,7 @@ const Signup = () => {
     setMounted(true);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!firstname || !lastname || !contact || !username || !email || !password) {
@@ -195,18 +195,25 @@ const Signup = () => {
       </div>
 
       {/* Logo */}
-      <div className={`absolute top-10 left-1/2 transform -translate-x-1/2 transition-all duration-700 ease-out ${mounted ? 'opacity-100' : 'opacity-0 -translate-y-10'}`}>
-        <div className="flex items-center">
-          {/* <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 5C13.66 5 15 6.34 15 8C15 9.66 13.66 11 12 11C10.34 11 9 9.66 9 8C9 6.34 10.34 5 12 5ZM12 19.2C9.5 19.2 7.29 17.92 6 15.98C6.03 13.99 10 12.9 12 12.9C14 12.9 17.97 13.99 18 15.98C16.71 17.92 14.5 19.2 12 19.2Z" fill="white"/>
-                </svg> */}
+      <div
+        className={`mt-7 absolute top-10 left-1/2 transform -translate-x-1/2 transition-all duration-700 ease-out ${mounted ? "opacity-100" : "opacity-0 -translate-y-10"
+          }`}
+      >
+        <div className="flex items-center relative">
+          {/* Glowing Green FontAwesome Icon */}
+          <FontAwesomeIcon
+            icon={faLeaf}
+            className="text-green-400 text-3xl drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
+          />
 
-
-          <FontAwesomeIcon icon={faLeaf} className="text-white text-2xl" />
-
-
-
-          <h1 className="ml-3 text-xl font-semibold text-white">Nourish</h1>
+          {/* Glowing Green Text */}
+          <h1
+            className="ml-3 text-2xl font-semibold text-green-400 relative
+              before:absolute before:-inset-1 before:bg-green-400 before:blur-lg before:opacity-50
+              drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
+          >
+            Nourish
+          </h1>
         </div>
       </div>
 
@@ -317,21 +324,10 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* <div className="flex items-center mt-2">
-              <input
-                type="checkbox"
-                id="terms"
-                className="h-4 w-4 rounded bg-white bg-opacity-10 border-white border-opacity-30 focus:ring-0 focus:ring-offset-0"
-              />
-              {<label htmlFor="terms" className="ml-2 text-xs text-white text-opacity-80">
-                I agree to the Terms of Service and Privacy Policy
-              </label> }
-            </div> */}
-
             <button
               type="submit"
               disabled={isLoading}
-              className={`w-full px-6 py-3 mt-4 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 ${isLoading ? "opacity-80" : ""
+              className={`w-full px-6 py-3 mt-4 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white focus:ring-opacity-50 ${isLoading ? "opacity-80" : ""
                 }`}
             >
               {isLoading ? (
@@ -358,7 +354,7 @@ const Signup = () => {
           </div>
         </div>
       </div>
-      <ToastContainer/>
+      <ToastContainer />
     </div>
   );
 };

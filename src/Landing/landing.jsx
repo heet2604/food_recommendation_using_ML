@@ -54,13 +54,12 @@ import axios from 'axios';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeaf } from "@fortawesome/free-solid-svg-icons";
 
-
 function Landing() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     setIsLoaded(true);
-    
+
     axios.get('http://localhost:3000')
       .then(response => {
         console.log('Data fetched from backend:', response.data);
@@ -71,47 +70,32 @@ function Landing() {
   }, []);
 
   return (
-    <div
-      className="relative flex flex-col justify-center items-center min-h-screen text-center text-white bg-cover bg-center overflow-hidden"
-      // style={{
-      //   backgroundImage: `url('./apple.jpg')`,
-      // }}
-    >
+    <div className="relative flex flex-col justify-center items-center min-h-screen text-center text-white bg-cover bg-center overflow-hidden">
       {/* Overlay with darker gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/90 to-black/90 z-0"></div>
-      
+
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-green-600 rounded-full mix-blend-overlay opacity-20 filter blur-3xl animate-float"></div>
         <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-green-700 rounded-full mix-blend-overlay opacity-20 filter blur-3xl animate-float" style={{ animationDelay: "2s" }}></div>
       </div>
-      
+
       {/* Content container with animation */}
       <div className={`relative z-10 w-full max-w-4xl px-6 py-12 transition-all duration-1000 ease-out ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
         {/* Logo or brand mark */}
-        {/* <div className="mx-auto w-20 h-20 mb-8 bg-white rounded-full flex items-center justify-center shadow-lg shadow-green-500/20">
-          <span className="text-black text-3xl font-bold">N</span>
-        </div> */}
-        
+        <div className="flex items-center justify-center relative mb-5">
+          {/* Glowing Green FontAwesome Icon */}
+          <FontAwesomeIcon
+            icon={faLeaf}
+            className="text-green-400 text-3xl drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
+          />
 
-          <div className="flex items-center justify-center relative mb-5">
-              {/* Glowing Green FontAwesome Icon */}
-              <FontAwesomeIcon
-                icon={faLeaf}
-                className="text-green-400 text-3xl drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
-              />
-          
-              {/* Glowing Green Text */}
-              <h1
-                className="ml-3 text-2xl font-semibold text-green-400 relative
-                  before:absolute before:-inset-1 before:bg-green-400 before:blur-lg before:opacity-50
-                  drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
-              >
-              </h1>
-            </div>
+          {/* Glowing Green Text */}
+          {/* <h1 className="ml-3 text-2xl font-semibold text-green-400 relative before:absolute before:-inset-1 before:bg-green-400 before:blur-lg before:opacity-50 drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse">
+            Nourish
+          </h1> */}
+        </div>
 
-
-        
         {/* Main heading with animated gradient text */}
         <h1 className="text-4xl md:text-6xl font-bold mb-6 tracking-tight">
           Welcome to{" "}
@@ -122,12 +106,12 @@ function Landing() {
             <span className="absolute inset-0 bg-green-500/20 blur-sm rounded-lg transform -skew-x-12"></span>
           </span>
         </h1>
-        
+
         {/* Subheading with slight delay */}
         <h2 className={`text-xl md:text-3xl text-gray-300 font-light mb-10 transition-all duration-700 delay-300 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}`}>
           Be fit from <span className="italic font-medium text-green-300">Within</span>
         </h2>
-        
+
         {/* Feature highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           <div className="p-4 rounded-xl bg-black/40 backdrop-blur-sm">
@@ -139,7 +123,7 @@ function Landing() {
             <h3 className="text-lg font-medium mb-1">Personalized Plans</h3>
             <p className="text-sm text-gray-300">Tailored to your unique goals</p>
           </div>
-          
+
           <div className="p-4 rounded-xl bg-black/40 backdrop-blur-sm">
             <div className="w-12 h-12 mb-3 mx-auto rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/20">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,7 +133,7 @@ function Landing() {
             <h3 className="text-lg font-medium mb-1">Track Progress</h3>
             <p className="text-sm text-gray-300">Monitor your fitness journey</p>
           </div>
-          
+
           <div className="p-4 rounded-xl bg-black/40 backdrop-blur-sm">
             <div className="w-12 h-12 mb-3 mx-auto rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/20">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -160,7 +144,7 @@ function Landing() {
             <p className="text-sm text-gray-300">Learn from fitness professionals</p>
           </div>
         </div>
-        
+
         {/* CTA buttons with animation */}
         <div className={`flex flex-col sm:flex-row items-center justify-center gap-6 transition-all duration-1000 delay-500 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <Link to="/login">
@@ -174,7 +158,7 @@ function Landing() {
               <div className="absolute inset-0 bg-white transition-all duration-300 opacity-0 group-hover:opacity-20"></div>
             </button>
           </Link>
-          
+
           <Link to="/signup">
             <button className="group relative w-48 h-14 overflow-hidden rounded-full bg-black/40 backdrop-blur-sm border border-green-500/30 text-white font-medium shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105">
               <span className="relative z-10 flex items-center justify-center w-full h-full">
@@ -187,7 +171,7 @@ function Landing() {
             </button>
           </Link>
         </div>
-        
+
         {/* Footer text */}
         <div className="mt-16 text-sm text-gray-400">
           Start your journey to a healthier lifestyle today
