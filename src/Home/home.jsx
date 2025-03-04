@@ -89,7 +89,7 @@ export default function App() {
           <a href="/premium" className="cursor-pointer hover:text-gray-400">
             Explore Premium
           </a>
-          <a href="" className="cursor-pointer hover:text-gray-400">Profile</a>
+          <a href="/profile" className="cursor-pointer hover:text-gray-400">Profile</a>
         </div>
       </nav>
 
@@ -105,7 +105,7 @@ export default function App() {
           <a href="" className="cursor-pointer hover:text-gray-400 py-2">
             Explore Premium
           </a>
-          <a href="" className="cursor-pointer hover:text-gray-400 py-2">Profile</a>
+          <a href="/profile" className="cursor-pointer hover:text-gray-400 py-2">Profile</a>
         </div>
       )}
 

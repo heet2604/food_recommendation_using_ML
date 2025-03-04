@@ -1,9 +1,9 @@
   import React from 'react';
   import './index.css';
   import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-  import Landing from './Landing/landing';
-  import Login from './Login/Login';
-  import Signup from './Signup/Signup';
+  import Landing from './Landing/landing.tsx';
+  import Login from './Login/Login.tsx';
+  import Signup from './Signup/Signup.tsx';
   import Home from './Home/home';
   import Vitals from './Vitals/vitals';
   import FoodDetails from './FoodDetails/food_details';
@@ -23,7 +23,6 @@
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
-
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/food_details" element={<ProtectedRoute><FoodDetails /></ProtectedRoute>} />
             <Route path="/vitals" element={<ProtectedRoute><Vitals /></ProtectedRoute>} />
