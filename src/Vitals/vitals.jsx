@@ -13,12 +13,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 
 function Vitals() {
-  // Doctor details (for future use)
-  // const doctorDetails = {
-  //   name: "Dr Fenny Shah",
-  //   contact: "+1-234-567-890",
-  //   email: "fennyshah@gmail.com",
-  // };
+  
 
   // State for current input readings
   const [sugarReading, setSugarReading] = useState(90);
@@ -30,17 +25,66 @@ function Vitals() {
   const [weightReadings, setWeightReadings] = useState([]);
 
   // Fetch vitals from backend (if needed)
-  useEffect(() => {
-    axios
-      .get("http://localhost:3000/vitals")
-      .then((response) => {
-        console.log("Data fetched from backend:", response.data);
-        // Optionally update state with fetched data here.
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get("http://localhost:3000/vitals")
+  //     .then((response) => {
+  //       console.log("Data fetched from backend:", response.data);
+  //       // Optionally update state with fetched data here.
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching data:", error);
+  //     });
+  // }, []);
+
+
+
+
+
+
+// Inside the Vitals component
+
+// Fetch vitals from backend
+useEffect(() => {
+  axios
+    .get("http://localhost:5000/api/vitals", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    })
+    .then((response) => {
+      const vitals = response.data.vitals;
+      setSugarReadings(vitals.map(v => ({ value: v.sugarReading, timestamp: v.timestamp })));
+      setWeightReadings(vitals.map(v => ({ value: v.weightReading, timestamp: v.timestamp })));
+    })
+    .catch((error) => {
+      console.error("Error fetching vitals:", error);
+    });
+}, []);
+
+// Add new vitals reading
+const addVitalsReading = () => {
+  axios
+    .post(
+      "http://localhost:5000/api/vitals",
+      { sugarReading, weightReading },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    )
+    .then((response) => {
+      toast.success("Vitals reading added successfully");
+      // Optionally refetch vitals or update state directly
+    })
+    .catch((error) => {
+      console.error("Error adding vitals:", error);
+      toast.error("Failed to add vitals reading");
+    });
+};
+
+
 
   // Increment/Decrement functions for blood sugar
   const sugarIncrement = () =>
