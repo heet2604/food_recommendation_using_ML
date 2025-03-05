@@ -22,4 +22,4 @@ const DailyIntake = new mongoose.Schema({
     },
 } , { collection: "dailyIntake", timestamps: true })
 
-module.exports = mongoose.model("Dailyintake", DailyIntake);
+module.exports = mongoose.model("Dailyintake", DailyIntake);    

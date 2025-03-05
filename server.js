@@ -716,62 +716,126 @@ app.get("/api/vitals", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/api/add-food-to-dashboard",authMiddleware,async (req,res)=>{
-  try{
-    const {energy_kcal,protein_g,carb_g,fat_g,fibre_g} = req.body;
+app.post("/api/add-food-to-dashboard", authMiddleware, async (req, res) => {
+  try {
+    const { energy_kcal, protein_g, carb_g, fat_g, fibre_g } = req.body;
     const userId = req.user.userId;
 
+    // Validate input
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    // Create a date range for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    // Find or create daily intake record
     let dailyIntake = await DailyIntake.findOne({
       userId,
-      date : {
-        $gte : new Date().setHours(0,0,0,0),
-        $lt : new Date().setHours(23,59,59,999),
+      date: {
+        $gte: today,
+        $lt: tomorrow
       }
     });
 
-    if(!dailyIntake) {
-      dailyIntake = await DailyIntake.create({userId});
+    if (!dailyIntake) {
+      dailyIntake = new DailyIntake({
+        userId,
+        date: today,
+        calories: 0,
+        nutrients: {
+          protein: 0,
+          carbs: 0,
+          fats: 0,
+          fiber: 0
+        }
+      });
     }
-    dailyIntake.calories += parseFloat(energy_kcal)
-    dailyIntake.nutrients.protein += parseFloat(protein_g)
-    dailyIntake.nutrients.carbs += parseFloat(carb_g)
-    dailyIntake.nutrients.fats += parseFloat(fat_g)
-    dailyIntake.nutrients.fiber += parseFloat(fibre_g);
 
+    // Safely parse and add values
+    dailyIntake.calories += parseFloat(energy_kcal || 0);
+    dailyIntake.nutrients.protein += parseFloat(protein_g || 0);
+    dailyIntake.nutrients.carbs += parseFloat(carb_g || 0);
+    dailyIntake.nutrients.fats += parseFloat(fat_g || 0);
+    dailyIntake.nutrients.fiber += parseFloat(fibre_g || 0);
+
+    // Save the updated intake
     await dailyIntake.save();
-    res.json({success : true , message : "Food intake updated"})
-  }
-  catch(err){
-    console.error(err)
-    res.status(500).json({success : false , message : "Server error"})
+
+    res.json({
+      success: true,
+      message: "Food intake updated",
+      data: {
+        calories: dailyIntake.calories,
+        nutrients: dailyIntake.nutrients
+      }
+    });
+  } catch (err) {
+    console.error("Error adding food to dashboard:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error",
+      error: err.message 
+    });
   }
 });
 
-app.get("/api/dashboard-data",authMiddleware,async (req,res)=>{
-  try{
+app.get("/api/dashboard-data", authMiddleware, async (req, res) => {
+  try {
     const userId = req.user.userId;
+
+    // Validate user ID
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    // Create a date range for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    // Find daily intake for today
     const dailyIntake = await DailyIntake.findOne({
       userId,
-      date : {
-        $gte : new Date().setHours(0,0,0,0),
-        $lte : new Date().setHours(23,59,59,999)
+      date: {
+        $gte: today,
+        $lt: tomorrow
       }
-    })
+    });
 
-    if(!dailyIntake){
-      return res.json({success : true , calories : 0, nutrients : {protein : 0,carbs : 0,fats : 0,fiber :0}});
-
+    // Return default values if no intake found
+    if (!dailyIntake) {
+      return res.json({
+        success: true,
+        calories: 0,
+        nutrients: {
+          protein: 0,
+          carbs: 0,
+          fats: 0,
+          fiber: 0
+        }
+      });
     }
-    res.json({success : true,
-      calories : dailyIntake.calories,
-      nutrients : dailyIntake.nutrients
-    })
+
+    // Return daily intake data
+    res.json({
+      success: true,
+      calories: dailyIntake.calories,
+      nutrients: dailyIntake.nutrients
+    });
+  } catch (err) {
+    console.error("Error fetching dashboard data:", err);
+    res.status(500).json({ 
+      success: false, 
+      message: "Server error",
+      error: err.message 
+    });
   }
-  catch(err){
-    console.error(err)
-    res.status(500).json({success : false,message : "Server error"})
-  }
-})
+});
 
 app.listen(port, () => {
   console.log(`Live at port ${port}`);
