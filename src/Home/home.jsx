@@ -228,12 +228,12 @@ export default function DashboardHome() {
     dailyGoalFiber: 15,
   });
 
-  const [calories, setCalories] = useState(1800); // Current calories consumed
+  const [calories, setCalories] = useState(0); // Current calories consumed
   const [nutrients, setNutrients] = useState({
-    Protein: 60, // In grams
-    Fiber: 15,
-    Carbs: 170,
-    Fats: 20,
+    Protein: 0, // In grams
+    Fiber: 0,
+    Carbs: 0,
+    Fats: 0,
   });
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -264,7 +264,24 @@ export default function DashboardHome() {
       }
     };
 
+    const fetchDashboardData = async()=>{
+      try{
+        const response = await axios.get("http://localhost:5000/api/dashboard-data",{
+          headers : {
+            Authorization : `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        if(response.data.success){
+          setCalories(response.data.calories);
+          setNutrients(response.data.nutrients);
+        }
+      }
+      catch(err){
+        console.error(err);
+      }
+    }
     fetchGoal();
+    fetchDashboardData();
   }, []);
 
   // Convert nutrients into data for the pie chart

@@ -365,6 +365,7 @@ const bcrypt = require("bcrypt");
 const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
 const axios = require("axios");
+const DailyIntake = require('./models/dailyIntake.js');
 
 const port = 5000;
 app.use(express.json());
@@ -691,6 +692,7 @@ app.put("/profile", authMiddleware, async (req, res) => {
 
 // New Routes for Vitals
 const Vitals = require("./models/vitals");
+const { parse } = require("dotenv");
 
 app.post("/api/vitals", authMiddleware, async (req, res) => {
   try {
@@ -725,6 +727,63 @@ app.get("/api/vitals", authMiddleware, async (req, res) => {
     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
   }
 });
+
+app.post("/api/add-food-to-dashboard",authMiddleware,async (req,res)=>{
+  try{
+    const {energy_kcal,protein_g,carb_g,fat_g,fibre_g} = req.body;
+    const userId = req.user.userId;
+
+    let dailyIntake = await DailyIntake.findOne({
+      userId,
+      date : {
+        $gte : new Date().setHours(0,0,0,0),
+        $lt : new Date().setHours(23,59,59,999),
+      }
+    });
+
+    if(!dailyIntake) {
+      dailyIntake = await DailyIntake.create({userId});
+    }
+    dailyIntake.calories += parseFloat(energy_kcal)
+    dailyIntake.nutrients.protein += parseFloat(protein_g)
+    dailyIntake.nutrients.carbs += parseFloat(carb_g)
+    dailyIntake.nutrients.fats += parseFloat(fat_g)
+    dailyIntake.nutrients.fiber += parseFloat(fibre_g);
+
+    await dailyIntake.save();
+    res.json({success : true , message : "Food intake updated"})
+  }
+  catch(err){
+    console.error(err)
+    res.status(500).json({success : false , message : "Server error"})
+  }
+});
+
+app.get("/api/dashboard-data",authMiddleware,async (req,res)=>{
+  try{
+    const userId = req.user.userId;
+    const dailyIntake = await DailyIntake.findOne({
+      userId,
+      date : {
+        $gte : new Date().setHours(0,0,0,0),
+        $lte : new Date().setHours(23,59,59,999)
+      }
+    })
+
+    if(!dailyIntake){
+      return res.json({success : true , calories : 0, nutrients : {protein : 0,carbs : 0,fats : 0,fiber :0}});
+
+    }
+    res.json({success : true,
+      calories : dailyIntake.calories,
+      nutrients : dailyIntake.nutrients
+    })
+  }
+  catch(err){
+    console.error(err)
+    res.status(500).json({success : false,message : "Server error"})
+  }
+})
 
 app.listen(port, () => {
   console.log(`Live at port ${port}`);
