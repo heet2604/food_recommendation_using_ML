@@ -785,6 +785,63 @@ app.get("/api/dashboard-data",authMiddleware,async (req,res)=>{
   }
 })
 
+// Add these routes to your existing server file
+
+app.post("/api/vitals", authMiddleware, async (req, res) => {
+  try {
+    const { sugarReading, weightReading } = req.body;
+    const userId = req.user.userId;
+
+    if (!sugarReading || !weightReading) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    // Create new vitals entry
+    const vitals = await Vitals.create({
+      userId,
+      sugarReading,
+      weightReading,
+    });
+
+    // Update user details with the latest weight
+    await UserDetails.findOneAndUpdate(
+      { userId },
+      { weight: weightReading },
+      { new: true }
+    );
+
+    res.status(201).json({ 
+      success: true, 
+      message: "Vitals added successfully!", 
+      vitals 
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
+});
+
+app.get("/api/vitals", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Fetch all vitals for the user, sorted by timestamp
+    const vitals = await Vitals.find({ userId }).sort({ timestamp: -1 });
+
+    // Optional: Get the latest vitals for quick reference
+    const latestVitals = vitals.length > 0 ? vitals[0] : null;
+
+    res.status(200).json({ 
+      success: true, 
+      vitals,
+      latestVitals
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Live at port ${port}`);
 });

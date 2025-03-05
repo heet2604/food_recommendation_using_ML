@@ -20,26 +20,26 @@ function Vitals() {
   const [sugarReadings, setSugarReadings] = useState([]);
   const [weightReadings, setWeightReadings] = useState([]);
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/vitals", {
+  const fetchVitals = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      })
-      .then((response) => {
-        const vitals = response.data.vitals;
-        setSugarReadings(vitals.map(v => ({ value: v.sugarReading, timestamp: v.timestamp })));
-        setWeightReadings(vitals.map(v => ({ value: v.weightReading, timestamp: v.timestamp })));
-      })
-      .catch((error) => {
-        console.error("Error fetching vitals:", error);
       });
-  }, []);
 
-  const addVitalsReading = () => {
-    axios
-      .post(
+      const vitals = response.data.vitals;
+      setSugarReadings(vitals.map(v => ({ value: v.sugarReading, timestamp: v.timestamp })));
+      setWeightReadings(vitals.map(v => ({ value: v.weightReading, timestamp: v.timestamp })));
+    } catch (error) {
+      console.error("Error fetching vitals:", error);
+      toast.error("Failed to fetch vitals");
+    }
+  };
+
+  const addVitalsReading = async () => {
+    try {
+      await axios.post(
         "http://localhost:5000/api/vitals",
         { sugarReading, weightReading },
         {
@@ -47,16 +47,35 @@ function Vitals() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
-      )
-      .then((response) => {
-        toast.success("Vitals reading added successfully");
-      })
-      .catch((error) => {
-        console.error("Error adding vitals:", error);
-        toast.error("Failed to add vitals reading");
-      });
+      );
+
+      toast.success("Vitals reading added successfully");
+      
+      // Update local state
+      const newReading = { 
+        value: weightReading, 
+        timestamp: new Date().toISOString() 
+      };
+      setWeightReadings(prev => [newReading, ...prev]);
+
+      const newSugarReading = { 
+        value: sugarReading, 
+        timestamp: new Date().toISOString() 
+      };
+      setSugarReadings(prev => [newSugarReading, ...prev]);
+    } catch (error) {
+      console.error("Error adding vitals:", error);
+      toast.error("Failed to add vitals reading");
+    }
   };
 
+ 
+
+  useEffect(() => {
+    fetchVitals();
+  }, []);
+
+  
   const sugarIncrement = () => setSugarReading((prev) => Math.max(prev + 1, 0));
   const sugarDecrement = () => setSugarReading((prev) => Math.max(prev - 1, 0));
 

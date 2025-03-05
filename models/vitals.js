@@ -1,23 +1,27 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const vitalsSchema = new mongoose.Schema({
+const VitalsSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
+    ref: 'User',
+    required: true
   },
   sugarReading: {
     type: Number,
-    required: true,
+    required: true
   },
   weightReading: {
     type: Number,
-    required: true,
+    required: true
   },
   timestamp: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
+}, { 
+  timestamps: true 
 });
 
-module.exports = mongoose.model("Vitals", vitalsSchema);
+const Vitals = mongoose.model('Vitals', VitalsSchema);
+
+module.exports = Vitals;
