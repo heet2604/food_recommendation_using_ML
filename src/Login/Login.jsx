@@ -40,19 +40,26 @@ const Login = () => {
 
       toast.success("Login successful!");
 
+      // Determine navigation based on user details
       setTimeout(() => {
-        navigate("/calculateGoal");
+        if (!response.data.hasUserDetails) {
+          // If no user details, first show welcome page
+          navigate("/welcome");
+        } else {
+          // If user details exist, go to home
+          navigate("/home");
+        }
       }, 1500);
 
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong!");
+      toast.error(err.response?.data?.error || "Something went wrong!");
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
+    return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 to-black overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">

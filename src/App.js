@@ -13,6 +13,7 @@
   import ProtectedRoute from './protectedRoute';
   import CalcForm from "./CalcForm/CalcForm";
   import ProfilePage from "./Profile/profile";
+  import Welcome from "./Login/Welcome.jsx"
 
   function App() {
     return (
@@ -31,6 +32,7 @@
             <Route path="/search" element={<ProtectedRoute><Search/></ProtectedRoute>}/>
             <Route path="/calculateGoal" element={<ProtectedRoute><CalcForm/></ProtectedRoute>}/>
             <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}></Route>
+            <Route path="/welcome" element={<ProtectedRoute><Welcome/></ProtectedRoute>}></Route>
           </Routes>
         </Router>
       </div>
