@@ -54,40 +54,40 @@ const Search = () => {
   };
   
 
-  // Add selected food to database
   const handleAddButton = async () => {
     if (!selectedFood) {
       toast.error("No food selected!");
       return;
     }
   
-    const token = localStorage.getItem("token"); // Retrieve token from localStorage
+    const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Unauthorized! Please log in.");
-      navigate("/login"); // Redirect to login if no token is found
+      navigate("/login");
       return;
     }
   
     const foodWithQuantity = {
+      userId: localStorage.getItem("userId"), // Add the user ID from localStorage
       food_name: selectedFood.food_name,
-      energy_kcal: ((selectedFood.energy_kcal * quantity) / 100).toFixed(2),
-      fibre_g: ((selectedFood.fibre_g * quantity) / 100).toFixed(2),
-      fat_g: ((selectedFood.fat_g * quantity) / 100).toFixed(2),
-      protein_g: ((selectedFood.protein_g * quantity) / 100).toFixed(2),
-      carb_g: ((selectedFood.carb_g * quantity) / 100).toFixed(2),
+      energy_kcal: Number(((selectedFood.energy_kcal * quantity) / 100).toFixed(2)),
+      fibre_g: Number(((selectedFood.fibre_g * quantity) / 100).toFixed(2)),
+      fat_g: Number(((selectedFood.fat_g * quantity) / 100).toFixed(2)),
+      protein_g: Number(((selectedFood.protein_g * quantity) / 100).toFixed(2)),
+      carb_g: Number(((selectedFood.carb_g * quantity) / 100).toFixed(2)),
       glycemic_index: selectedFood.glycemic_index ?? null,
-      quantity: quantity,
     };
   
-    console.log("📤 Storing food data:", foodWithQuantity);
-
+    console.log("📤 Storing food data:", JSON.stringify(foodWithQuantity, null, 2));
+  
     try {
       const response = await axios.post(
         "http://localhost:5000/api/add-food",
         foodWithQuantity,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Send token in Authorization header
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
         }
       );
@@ -95,17 +95,26 @@ const Search = () => {
       console.log("✅ Food added to database:", response.data);
       toast.success("✅ Food added successfully!");
   
-      // Navigate to food_details after the food is added
       setTimeout(() => {
-        navigate("/food_details",{state : {foodData : foodWithQuantity}});
+        navigate("/food_details", { state: { foodData: foodWithQuantity } });
       }, 1000);
     } catch (err) {
-      console.error("❌ Error adding food to database:", err);
-      toast.error("Failed to add food!");
+      console.error("❌ Error adding food to database:", err.response ? err.response.data : err);
+      
+      if (err.response) {
+        const errorMessage = err.response.data.details 
+          ? err.response.data.details.join(', ') 
+          : err.response.data.error || 'Failed to add food';
+        toast.error(errorMessage);
+      } else if (err.request) {
+        toast.error("No response received from server");
+      } else {
+        toast.error("Error setting up the request");
+      }
     }
-  };  
-  
-  
+  };
+
+
   return (
     <div className="bg-black min-h-screen text-white flex flex-col items-center p-4 w-full">
       {/* Navbar */}
