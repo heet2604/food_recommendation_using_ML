@@ -424,6 +424,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+
 app.post("/login", async (req, res) => {
   let { username, password } = req.body;
   try {
@@ -435,13 +436,24 @@ app.post("/login", async (req, res) => {
     if (!valid) {
       return res.status(401).send({ error: "Invalid Password" });
     }
+    
+    // Check if user details exist
+    const userDetails = await UserDetails.findOne({ userId: user._id });
+    
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "1h" });
-    res.send({ message: "Login Successful", token: token });
+    res.send({ 
+      message: "Login Successful", 
+      token: token, 
+      userId: user._id,
+      hasUserDetails: !!userDetails // Boolean indicating if user details exist
+    });
   } catch (err) {
     console.log(err);
     res.status(500).send({ error: "Server error" });
   }
 });
+
+
 
 app.post("/api/calculate-goals", authMiddleware, async (req, res) => {
   try {
