@@ -35,6 +35,8 @@ const Welcome = () => {
           Set Up My Goals
         </button>
       </div>
+
+      
     </div>
   );
 };

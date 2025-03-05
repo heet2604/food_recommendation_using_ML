@@ -353,6 +353,8 @@ function FoodDetails() {
           </button>
         </div>
       </div>
+
+      
     </div>
   );
 }

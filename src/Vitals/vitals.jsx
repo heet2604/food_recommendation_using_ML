@@ -392,6 +392,8 @@ function Vitals() {
           </div>
         </div>
       </div>
+
+      
     </div>
   );
 }

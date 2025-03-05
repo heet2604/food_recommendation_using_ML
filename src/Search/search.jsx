@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
+import { 
+  Home as HomeIcon, 
+  Coffee, 
+  Activity, 
+  Zap, 
+  User,
+  Search as SearchIcon,
+  X,
+  Menu,
+  Plus
+} from "lucide-react";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -10,14 +21,27 @@ const Search = () => {
   const [selectedFood, setSelectedFood] = useState(null);
   const [quantity, setQuantity] = useState(100); // Default quantity 100g
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = async () => {
-    toast.info("Remember to select the food again after updating the quantity!");
+    if (!search.trim()) {
+      toast({
+        description: "Please enter a food to search",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      description: "Remember to select the food after updating the quantity!",
+    });
+    
     try {
+      setIsLoading(true);
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
         "http://localhost:5000/api/analyze",
-        { food: formattedSearch },  // Fix: change "food_name" to "food" to match backend
+        { food: formattedSearch },
         { headers: { "Content-Type": "application/json" } }
       );
   
@@ -32,7 +56,6 @@ const Search = () => {
         foodData = response.data;
       }
       
-      //const glycemicIndex = (39.71 + 0.548 * foodData.carb - 3.93 * foodData.fiber) + (foodData.protein + foodData.fat);
       setResult([
         {
           food_name: formattedSearch.replace(/\b\w/g, (char) => char.toUpperCase()),
@@ -41,34 +64,45 @@ const Search = () => {
           fat_g: foodData.fat || 0,
           protein_g: foodData.protein || 0,
           carb_g: foodData.carb || 0,
-          glycemic_index : foodData.glycemic_index ?? null,
-          // glycemic_index : glycemicIndex.toFixed(2)
+          glycemic_index: foodData.glycemic_index ?? null,
         }
       ]);
-      
-
     } catch (err) {
       console.error("❌ API Error:", err.response?.data || err.message);
-      toast.error("Failed to fetch food data. Check the backend logs.");
+      toast({
+        title: "Error",
+        description: "Failed to fetch food data. Check the backend logs.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
   
-
   const handleAddButton = async () => {
     if (!selectedFood) {
-      toast.error("No food selected!");
+      toast({
+        title: "Error",
+        description: "No food selected!",
+        variant: "destructive"
+      });
       return;
     }
   
     const token = localStorage.getItem("token");
     if (!token) {
-      toast.error("Unauthorized! Please log in.");
+      toast({
+        title: "Unauthorized",
+        description: "Please log in.",
+        variant: "destructive"
+      });
       navigate("/login");
       return;
     }
-  
+    
+    setIsLoading(true);
     const foodWithQuantity = {
-      userId: localStorage.getItem("userId"), // Add the user ID from localStorage
+      userId: localStorage.getItem("userId"),
       food_name: selectedFood.food_name,
       energy_kcal: Number(((selectedFood.energy_kcal * quantity) / 100).toFixed(2)),
       fibre_g: Number(((selectedFood.fibre_g * quantity) / 100).toFixed(2)),
@@ -93,7 +127,11 @@ const Search = () => {
       );
   
       console.log("✅ Food added to database:", response.data);
-      toast.success("✅ Food added successfully!");
+      toast({
+        title: "Success",
+        description: "Food added successfully!",
+        variant: "default"
+      });
   
       setTimeout(() => {
         navigate("/food_details", { state: { foodData: foodWithQuantity } });
@@ -105,97 +143,280 @@ const Search = () => {
         const errorMessage = err.response.data.details 
           ? err.response.data.details.join(', ') 
           : err.response.data.error || 'Failed to add food';
-        toast.error(errorMessage);
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive"
+        });
       } else if (err.request) {
-        toast.error("No response received from server");
+        toast({
+          title: "Error",
+          description: "No response received from server",
+          variant: "destructive"
+        });
       } else {
-        toast.error("Error setting up the request");
+        toast({
+          title: "Error",
+          description: "Error setting up the request",
+          variant: "destructive"
+        });
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
-
   return (
-    <div className="bg-black min-h-screen text-white flex flex-col items-center p-4 w-full">
+    <div className="bg-black text-white min-h-screen flex flex-col">
       {/* Navbar */}
-      <nav className="w-full fixed top-0 left-0 bg-gray-800 px-6 py-4 flex justify-between items-center">
-        <a href="/home" className="text-lg font-bold">Nourish</a>
-        <div className="lg:hidden">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-white focus:outline-none">☰</button>
-        </div>
-        <div className="hidden lg:flex flex-row items-center gap-8">
-          <a href="/home" className="cursor-pointer hover:text-gray-400">Home</a>
-          <a href="/food_details" className="cursor-pointer hover:text-gray-400">Food Details</a>
-          <a href="/vitals" className="cursor-pointer hover:text-gray-400">Track Vitals</a>
-          <a href="/premium" className="cursor-pointer hover:text-gray-400">Explore Premium</a>
-          <span className="cursor-pointer hover:text-gray-400">Profile</span>
+      <nav className="w-full bg-gray-900 px-6 py-4 border-b border-green-500/20 shadow-lg shadow-green-500/5 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <a href="/" className="text-xl font-bold flex items-center gap-2">
+            <span className="text-green-500">N</span>ourish
+          </a>
+
+          <div className="lg:hidden">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-lg text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-8">
+            <a href="/" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+              <HomeIcon className="w-4 h-4" />
+              <span>Home</span>
+            </a>
+            <a href="/food_details" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+              <Coffee className="w-4 h-4" />
+              <span>Food Details</span>
+            </a>
+            <a href="/vitals" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+              <Activity className="w-4 h-4" />
+              <span>Track Vitals</span>
+            </a>
+            <a href="/premium" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+              <Zap className="w-4 h-4" />
+              <span>Premium</span>
+            </a>
+            <a href="/profile" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+              <User className="w-4 h-4" />
+              <span>Profile</span>
+            </a>
+            <a href="/search" className="nav-link flex items-center gap-2 text-green-500 font-medium">
+              <SearchIcon className="w-4 h-4" />
+              <span>Search</span>
+            </a>
+          </div>
         </div>
       </nav>
-      
+
+      {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="w-full bg-gray-800 px-6 py-4 flex flex-col items-center lg:hidden fixed top-16 left-0 z-50">
-          <a href="/home" className="cursor-pointer hover:text-gray-400 py-2">Home</a>
-          <a href="/food_details" className="cursor-pointer hover:text-gray-400 py-2">Food Details</a>
-          <a href="/vitals" className="cursor-pointer hover:text-gray-400 py-2">Track Vitals</a>
-          <a href="/premium" className="cursor-pointer hover:text-gray-400 py-2">Explore Premium</a>
-          <a href="" className="cursor-pointer hover:text-gray-400 py-2">Profile</a>
+        <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-green-500/20 shadow-xl fixed w-full z-40">
+          <div className="flex flex-col space-y-4 p-4">
+            <a href="/" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+              <HomeIcon className="w-5 h-5" />
+              <span>Home</span>
+            </a>
+            <a href="/food_details" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+              <Coffee className="w-5 h-5" />
+              <span>Food Details</span>
+            </a>
+            <a href="/vitals" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+              <Activity className="w-5 h-5" />
+              <span>Track Vitals</span>
+            </a>
+            <a href="/premium" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+              <Zap className="w-5 h-5" />
+              <span>Premium</span>
+            </a>
+            <a href="/profile" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+              <User className="w-5 h-5" />
+              <span>Profile</span>
+            </a>
+            <a href="/search" className="py-2 px-4 rounded-lg bg-green-500/10 flex items-center gap-3 text-green-500">
+              <SearchIcon className="w-5 h-5" />
+              <span>Search</span>
+            </a>
+          </div>
         </div>
       )}
 
-      <h1 className="text-2xl font-bold mt-20">Search Food for Nutritional Information (per 100g)</h1>
-      
-      <div className="flex items-center justify-center w-full max-w-md mt-10">
-        <input
-          type="text"
-          placeholder="Search food"
-          className="w-2/3 p-2 mr-2 text-black rounded"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 w-20" onClick={handleSearch}>
-          Search
-        </button>
-      </div>
+      {/* Main Content */}
+      <div className="flex-1 px-4 py-8 max-w-7xl mx-auto w-full">
+        <h1 className="text-2xl font-bold mb-6 text-center lg:text-left">Food Search</h1>
+        <p className="text-gray-400 mb-8 text-center lg:text-left">Search for foods to see their nutritional information and add them to your daily intake.</p>
 
-      {result.map((item, index) => (
-        <div
-          key={index}
-          className={`bg-gray-700 p-5 rounded-lg shadow-lg w-96 text-center border-2 
-          ${selectedFood?.food_name === item.food_name ? "border-yellow-500" : "border-green-500"} 
-          mt-10 cursor-pointer`}
-          onClick={() => {
-            console.log("✅ Food selected:", item);
-            setSelectedFood(item);
-          }}
-        >
-          <h2 className="text-2xl font-bold text-green-400 mb-3">{item.food_name}</h2>
-
-          <label className="block text-white mb-2">Quantity (g):</label>
-          <input
-            type="number"
-            min="1"
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-            className="w-20 p-2 text-black rounded"
-          />
-
-          <p className="text-xl mb-2 bg-gray-800 p-3 w-3/4 rounded-md mx-auto mt-3">
-            <strong>Calories:</strong> {((item.energy_kcal * quantity) / 100).toFixed(2)} kcal
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gray-800 p-3 rounded-lg"><strong>Fiber:</strong> {((item.fibre_g * quantity) / 100).toFixed(2)} g</div>
-            <div className="bg-gray-800 p-3 rounded-lg"><strong>Fats:</strong> {((item.fat_g * quantity) / 100).toFixed(2)} g</div>
-            <div className="bg-gray-800 p-3 rounded-lg"><strong>Protein:</strong> {((item.protein_g * quantity) / 100).toFixed(2)} g</div>
-            <div className="bg-gray-800 p-3 rounded-lg"><strong>Carbs:</strong> {((item.carb_g * quantity) / 100).toFixed(2)} g</div>
+        <div className="flex flex-col items-center mb-10">
+          <div className="w-full max-w-lg bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search for a food (e.g., apple, chicken, rice)"
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-green-500 transition-colors"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
+              </div>
+              <button
+                onClick={handleSearch}
+                disabled={isLoading}
+                className="bg-green-500 hover:bg-green-600 text-black font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-green-500/20 flex items-center justify-center"
+              >
+                {isLoading ? (
+                  <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                ) : (
+                  <SearchIcon className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
-      ))}
 
-      <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-900 w-20 mt-10" onClick={handleAddButton}>
-        Add
-      </button>
+        {/* Results */}
+        <div className="space-y-6 animate-fade-in">
+          {result.map((item, index) => (
+            <div 
+              key={index}
+              className={`bg-gray-900 rounded-xl p-6 border transition-all duration-300 cursor-pointer
+                ${selectedFood?.food_name === item.food_name 
+                  ? "border-green-500 shadow-lg shadow-green-500/10" 
+                  : "border-green-500/20 hover:border-green-500/40"}`}
+              onClick={() => {
+                console.log("✅ Food selected:", item);
+                setSelectedFood(item);
+              }}
+            >
+              <div className="flex flex-col md:flex-row md:items-center gap-6">
+                <div className="md:w-1/3">
+                  <h2 className="text-xl font-semibold mb-3 text-center">{item.food_name}</h2>
+                  
+                  <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-gray-300">Quantity:</label>
+                      <div className="flex items-center">
+                        <input
+                          type="number"
+                          min="1"
+                          value={quantity}
+                          onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                          className="w-20 bg-gray-700 border border-gray-600 text-white px-3 py-1 rounded text-center focus:outline-none focus:border-green-500"
+                        />
+                        <span className="ml-2 text-gray-400">g</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-center p-3 bg-gray-700 rounded-lg">
+                      <h3 className="text-sm text-gray-400 mb-1">Calories</h3>
+                      <span className="text-xl font-bold">{((item.energy_kcal * quantity) / 100).toFixed(1)}</span>
+                      <span className="text-gray-400 text-sm ml-1">kcal</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="md:w-2/3 space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Protein</span>
+                        <div>
+                          <span className="font-semibold">{((item.protein_g * quantity) / 100).toFixed(1)}</span>
+                          <span className="text-gray-400 text-sm ml-1">g</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Carbs</span>
+                        <div>
+                          <span className="font-semibold">{((item.carb_g * quantity) / 100).toFixed(1)}</span>
+                          <span className="text-gray-400 text-sm ml-1">g</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Fats</span>
+                        <div>
+                          <span className="font-semibold">{((item.fat_g * quantity) / 100).toFixed(1)}</span>
+                          <span className="text-gray-400 text-sm ml-1">g</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Fiber</span>
+                        <div>
+                          <span className="font-semibold">{((item.fibre_g * quantity) / 100).toFixed(1)}</span>
+                          <span className="text-gray-400 text-sm ml-1">g</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {item.glycemic_index !== null && (
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-300">Glycemic Index</span>
+                        <span className="font-semibold">{item.glycemic_index}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
 
-      <ToastContainer />
+        {selectedFood && (
+          <div className="flex justify-center mt-8 mb-12">
+            <button
+              onClick={handleAddButton}
+              disabled={isLoading}
+              className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-green-500/20 flex items-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="h-5 w-5 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+                  <span>Adding...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" />
+                  <span>Add to Daily Intake</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <footer className="w-full bg-gray-900 px-6 py-4 border-t border-green-500/20 mt-auto">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="text-gray-400 text-sm">
+            © 2023 Nourish. All rights reserved.
+          </div>
+          <div className="flex gap-4">
+            <a href="#" className="text-gray-400 hover:text-green-500 transition-colors">Terms</a>
+            <a href="#" className="text-gray-400 hover:text-green-500 transition-colors">Privacy</a>
+            <a href="#" className="text-gray-400 hover:text-green-500 transition-colors">Support</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
