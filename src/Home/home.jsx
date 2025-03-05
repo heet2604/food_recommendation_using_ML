@@ -1101,12 +1101,19 @@ export default function DashboardHome() {
         });
         if (response.data.success) {
           setCalories(response.data.calories);
-          setNutrients(response.data.nutrients);
+    
+          // Map backend keys to frontend keys
+          setNutrients({
+            Protein: response.data.nutrients.protein || 0,
+            Carbs: response.data.nutrients.carbs || 0,
+            Fats: response.data.nutrients.fats || 0,
+            Fiber: response.data.nutrients.fiber || 0,
+          });
         }
       } catch (err) {
         console.error(err);
       }
-    };
+    };  
 
     fetchGoal();
     fetchDashboardData();
