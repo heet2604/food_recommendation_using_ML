@@ -694,6 +694,30 @@ app.put("/profile", authMiddleware, async (req, res) => {
 const Vitals = require("./models/vitals");
 const { parse } = require("dotenv");
 
+// app.post("/api/vitals", authMiddleware, async (req, res) => {
+//   try {
+//     const { sugarReading, weightReading } = req.body;
+//     const userId = req.user.userId;
+
+//     if (!sugarReading || !weightReading) {
+//       return res.status(400).json({ message: "All fields are required." });
+//     }
+
+//     const vitals = await Vitals.create({
+//       userId,
+//       sugarReading,
+//       weightReading,
+//     });
+
+//     res.status(201).json({ success: true, message: "Vitals added successfully!", vitals });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+//   }
+// });
+
+
+
 app.post("/api/vitals", authMiddleware, async (req, res) => {
   try {
     const { sugarReading, weightReading } = req.body;
@@ -703,18 +727,60 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
+    // Find existing user details
+    const existingUserDetails = await UserDetails.findOne({ userId });
+
+    if (!existingUserDetails) {
+      return res.status(404).json({ message: "User details not found. Please set up your profile first." });
+    }
+
+    // Recalculate maintenance calories and macros with new weight
+    const maintenanceCalories = calculateMaintenanceCalories(
+      weightReading, 
+      existingUserDetails.height, 
+      existingUserDetails.age, 
+      existingUserDetails.gender, 
+      existingUserDetails.activityLevel
+    );
+
+    // Adjust Calories Based on Weight Goal
+    const adjustedCalories = maintenanceCalories + (existingUserDetails.weightGoal * 7700) / 7;
+
+    // Recalculate Daily Macros
+    const dailyMacros = calculateDailyMacros(weightReading, adjustedCalories);
+
+    // Update user details with new weight, calories, and macros
+    const updatedUserDetails = await UserDetails.findOneAndUpdate(
+      { userId },
+      {
+        weight: weightReading,
+        maintenanceCalories: adjustedCalories,
+        dailyMacros: dailyMacros,
+        bmi: calculateBMI(weightReading, existingUserDetails.height)
+      },
+      { new: true }
+    );
+
+    // Create new vitals entry
     const vitals = await Vitals.create({
       userId,
       sugarReading,
       weightReading,
     });
 
-    res.status(201).json({ success: true, message: "Vitals added successfully!", vitals });
+    res.status(201).json({ 
+      success: true, 
+      message: "Vitals added successfully!", 
+      vitals,
+      userDetails: updatedUserDetails
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
   }
 });
+
+
 
 app.get("/api/vitals", authMiddleware, async (req, res) => {
   try {
