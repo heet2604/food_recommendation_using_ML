@@ -296,7 +296,7 @@ const CalcForm = () => {
                 ? "Maintain Current Weight"
                 : formData.weightGoal > 0
                 ? `Gain ${formData.weightGoal} kg/week`
-                : `Lose ${Math.abs(formData.weightGoal)} kg/week`}
+                : `Lose ${Math.abs(formData.weightGoal)} kg/week` || "0 kg/week"}
             </div>
           </div>
           

@@ -83,14 +83,14 @@ app.post("/login", async (req, res) => {
     if (!valid) {
       return res.status(401).send({ error: "Invalid Password" });
     }
-    
+
     // Check if user details exist
     const userDetails = await UserDetails.findOne({ userId: user._id });
-    
+
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "1h" });
-    res.send({ 
-      message: "Login Successful", 
-      token: token, 
+    res.send({
+      message: "Login Successful",
+      token: token,
       userId: user._id,
       hasUserDetails: !!userDetails // Boolean indicating if user details exist
     });
@@ -155,15 +155,15 @@ app.use(express.static("public"));
 app.post('/api/add-food', async (req, res) => {
   try {
     // Validate incoming data
-    const { 
-      userId, 
-      food_name, 
-      protein_g, 
-      carb_g, 
-      fat_g, 
-      fibre_g, 
-      energy_kcal, 
-      glycemic_index 
+    const {
+      userId,
+      food_name,
+      protein_g,
+      carb_g,
+      fat_g,
+      fibre_g,
+      energy_kcal,
+      glycemic_index
     } = req.body;
 
     // Validation checks
@@ -189,9 +189,9 @@ app.post('/api/add-food', async (req, res) => {
     res.status(201).json(savedFood);
   } catch (error) {
     console.error('Error adding food:', error);
-    res.status(500).json({ 
-      error: 'Internal Server Error', 
-      message: error.message 
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error.message
     });
   }
 });
@@ -308,7 +308,7 @@ app.post("/api/analyze", async (req, res) => {
       } catch (parseError) {
         console.error("❌ JSON Parsing Error:", parseError);
         console.error("Problematic Text:", nutritionText);
-        
+
         // Fallback to default values if parsing fails
         nutritionData = {
           calories: 0,
@@ -333,7 +333,7 @@ app.post("/api/analyze", async (req, res) => {
 
     } catch (llmError) {
       console.error("❌ LLM API Error:", llmError.response?.data || llmError.message);
-      
+
       // Fallback to extremely basic nutrition data if LLM fails
       res.json({
         food: food,
@@ -348,8 +348,8 @@ app.post("/api/analyze", async (req, res) => {
 
   } catch (serverError) {
     console.error("🚨 Comprehensive Server Error:", serverError);
-    res.status(500).json({ 
-      error: "Internal Server Error", 
+    res.status(500).json({
+      error: "Internal Server Error",
       message: serverError.message,
       details: serverError.toString()
     });
@@ -452,10 +452,10 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
 
     // Recalculate maintenance calories and macros with new weight
     const maintenanceCalories = calculateMaintenanceCalories(
-      weightReading, 
-      existingUserDetails.height, 
-      existingUserDetails.age, 
-      existingUserDetails.gender, 
+      weightReading,
+      existingUserDetails.height,
+      existingUserDetails.age,
+      existingUserDetails.gender,
       existingUserDetails.activityLevel
     );
 
@@ -484,9 +484,9 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
       weightReading,
     });
 
-    res.status(201).json({ 
-      success: true, 
-      message: "Vitals added successfully!", 
+    res.status(201).json({
+      success: true,
+      message: "Vitals added successfully!",
       vitals,
       userDetails: updatedUserDetails
     });
@@ -569,10 +569,10 @@ app.post("/api/add-food-to-dashboard", authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error("Error adding food to dashboard:", err);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: "Server error",
-      error: err.message 
+      error: err.message
     });
   }
 });
@@ -623,10 +623,10 @@ app.get("/api/dashboard-data", authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching dashboard data:", err);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: "Server error",
-      error: err.message 
+      error: err.message
     });
   }
 });
@@ -656,10 +656,10 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
       { new: true }
     );
 
-    res.status(201).json({ 
-      success: true, 
-      message: "Vitals added successfully!", 
-      vitals 
+    res.status(201).json({
+      success: true,
+      message: "Vitals added successfully!",
+      vitals
     });
   } catch (error) {
     console.error("Error:", error);
@@ -670,15 +670,15 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
 app.get("/api/vitals", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
-    
+
     // Fetch all vitals for the user, sorted by timestamp
     const vitals = await Vitals.find({ userId }).sort({ timestamp: -1 });
 
     // Optional: Get the latest vitals for quick reference
     const latestVitals = vitals.length > 0 ? vitals[0] : null;
 
-    res.status(200).json({ 
-      success: true, 
+    res.status(200).json({
+      success: true,
       vitals,
       latestVitals
     });
@@ -694,7 +694,7 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized request" });
     }
-    
+
     console.log("Generating meal plan for user:", userId);
 
     // Fetch user details
@@ -751,6 +751,7 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
     };
 
     console.log("Context for LLM:", context);
+    const currentTime = new Date().toLocaleTimeString();
 
     // Generate meal plan using Together AI API
     const aiResponse = await axios.post(
@@ -761,13 +762,13 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
           {
             role: "system",
             content:
-              "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should match user's existing eating habits which are given in context.",
+              "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should be strictly based on users's existing habits, which are given in the context. Additionally, consider the current time of the day and provide 3 meal options for the user to choose from. Do not print the current context , only give meal plan based on current time of the day (example 3 meal options for lunch if current time is between 12 noon to 3:30 pm) also make sure that the options that you give are a compatible meal choice altogether and justify these choices by describing why this meal choice would be good along with calories /100 gms and macros and should be strictly according to the user's past eating habits.",
           },
           {
             role: "user",
             content: `Generate a meal plan for a user with the following details: ${JSON.stringify(
               context
-            )}`,
+            )}. The current time is ${currentTime}. Provide 3 meal options based on the time of the day.`,
           },
         ],
         max_tokens: 500,
