@@ -688,6 +688,121 @@ app.get("/api/vitals", authMiddleware, async (req, res) => {
   }
 });
 
+app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized request" });
+    }
+    
+    console.log("Generating meal plan for user:", userId);
+
+    // Fetch user details
+    const userDetails = await UserDetails.findOne({ userId });
+    if (!userDetails) {
+      return res.status(404).json({ success: false, message: "User details not found" });
+    }
+
+    // Fetch daily intake for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const dailyIntake = await DailyIntake.findOne({
+      userId,
+      date: { $gte: today, $lt: tomorrow },
+    });
+
+    // Fetch past food intake (last 7 days)
+    const pastFoodIntake = await Food.find({
+      userId,
+      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+    }).sort({ createdAt: -1 });
+
+    console.log(pastFoodIntake)
+
+    // Fetch latest vitals
+    const latestVitals = await Vitals.findOne({ userId }).sort({ timestamp: -1 });
+
+    // Prepare context for the LLM
+    const context = {
+      height: userDetails.height || "unknown",
+      weight: userDetails.weight || "unknown",
+      age: userDetails.age || "unknown",
+      gender: userDetails.gender || "unknown",
+      activityLevel: userDetails.activityLevel || "unknown",
+      weightGoal: userDetails.weightGoal || "unknown",
+      bmi: userDetails.bmi || "unknown",
+      maintenanceCalories: userDetails.maintenanceCalories || "unknown",
+      dailyMacros: userDetails.dailyMacros || {},
+      currentIntake: {
+        calories: dailyIntake?.calories || 0,
+        protein: dailyIntake?.nutrients?.protein || 0,
+        carbs: dailyIntake?.nutrients?.carbs || 0,
+        fats: dailyIntake?.nutrients?.fats || 0,
+        fiber: dailyIntake?.nutrients?.fiber || 0,
+      },
+      pastFoodIntake: pastFoodIntake?.map((food) => food.food_name) || [],
+      latestVitals: {
+        sugarReading: latestVitals?.sugarReading || null,
+        weightReading: latestVitals?.weightReading || null,
+      },
+    };
+
+    console.log("Context for LLM:", context);
+
+    // Generate meal plan using Together AI API
+    const aiResponse = await axios.post(
+      "https://api.together.xyz/v1/chat/completions",
+      {
+        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should match user's existing eating habits which are given in context.",
+          },
+          {
+            role: "user",
+            content: `Generate a meal plan for a user with the following details: ${JSON.stringify(
+              context
+            )}`,
+          },
+        ],
+        max_tokens: 500,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    // Validate AI response
+    if (
+      !aiResponse.data.choices ||
+      !aiResponse.data.choices[0] ||
+      !aiResponse.data.choices[0].message ||
+      !aiResponse.data.choices[0].message.content
+    ) {
+      throw new Error("Invalid response from Together AI");
+    }
+
+    const mealPlan = aiResponse.data.choices[0].message.content || "No meal plan generated.";
+
+    console.log("Generated Meal Plan:", mealPlan);
+
+    // Return the meal plan
+    res.status(200).json({ success: true, mealPlan });
+  } catch (error) {
+    console.error("Error generating meal plan:", error.message || error);
+    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Live at port ${port}`);
 });
