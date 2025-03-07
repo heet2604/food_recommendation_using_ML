@@ -100,12 +100,61 @@ function Vitals() {
     addVitalsReading();
   };
 
-  const BloodSugarGraphInline = ({ readings }) => {
-    const data = readings.map((reading) => ({
-      value: reading.value,
-      time: format(new Date(reading.timestamp), "HH:mm"),
-    }));
+  // const BloodSugarGraphInline = ({ readings }) => {
+  //   const data = readings.map((reading) => ({
+  //     value: reading.value,
+  //     time: format(new Date(reading.timestamp), "HH:mm"),
+  //   }));
 
+  //   return (
+  //     <div className="w-full h-[350px]">
+  //       {readings.length === 0 ? (
+  //         <div className="h-full flex flex-col items-center justify-center text-gray-400 p-6 border border-gray-800 rounded-lg bg-gray-900/50">
+  //           <Droplet className="w-12 h-12 text-green-500 mb-3 opacity-60" />
+  //           <p>No blood sugar readings yet.</p>
+  //           <p className="text-sm mt-2">Add your first reading above to start tracking.</p>
+  //         </div>
+  //       ) : (
+  //         <ResponsiveContainer width="100%" height="100%">
+  //           <LineChart data={data}>
+  //             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.07)" />
+  //             <XAxis dataKey="time" stroke="rgba(255,255,255,0.5)" tickLine={false} axisLine={false} />
+  //             <YAxis stroke="rgba(255,255,255,0.5)" tickLine={false} axisLine={false} unit=" mg/dL" />
+  //             <Tooltip
+  //               contentStyle={{
+  //                 backgroundColor: "rgba(22, 22, 26, 0.9)",
+  //                 border: "1px solid rgba(255,255,255,0.1)",
+  //                 borderRadius: "8px",
+  //                 color: "#fff",
+  //                 boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+  //               }}
+  //               labelStyle={{ color: "#aaa" }}
+  //             />
+  //             <Line
+  //               type="monotone"
+  //               dataKey="value"
+  //               stroke="#00c4ff"
+  //               strokeWidth={3}
+  //               dot={{ fill: "#00c4ff", r: 4, strokeWidth: 0 }}
+  //               activeDot={{ r: 7, fill: "#fff", stroke: "#00c4ff", strokeWidth: 2 }}
+  //               animationDuration={1500}
+  //             />
+  //           </LineChart>
+  //         </ResponsiveContainer>
+  //       )}
+  //     </div>
+  //   );
+  // };
+
+
+  const BloodSugarGraphInline = ({ readings }) => {
+    const data = readings
+      .map((reading) => ({
+        value: reading.value,
+        time: format(new Date(reading.timestamp), "HH:mm"),
+      }))
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Sort by timestamp
+  
     return (
       <div className="w-full h-[350px]">
         {readings.length === 0 ? (
@@ -146,6 +195,7 @@ function Vitals() {
     );
   };
 
+  
   const WeightGraph = ({ readings }) => {
     const data = readings.map((reading) => ({
       value: reading.value,
