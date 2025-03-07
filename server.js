@@ -720,7 +720,7 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
       createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
     }).sort({ createdAt: -1 });
 
-    console.log(pastFoodIntake)
+    console.log(pastFoodIntake);
 
     // Fetch latest vitals
     const latestVitals = await Vitals.findOne({ userId }).sort({ timestamp: -1 });
@@ -762,13 +762,13 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
           {
             role: "system",
             content:
-              "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should be strictly based on users's existing habits, which are given in the context. Additionally, consider the current time of the day and provide 3 meal options for the user to choose from. Do not print the current context , only give meal plan based on current time of the day (example 3 meal options for lunch if current time is between 12 noon to 3:30 pm) also make sure that the options that you give are a compatible meal choice altogether and justify these choices by describing why this meal choice would be good along with calories /100 gms and macros and should be strictly according to the user's past eating habits.",
+              "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should be strictly based on user's existing habits, which are given in the context. Additionally, consider the current time of the day and provide 3 meal options for the user to choose from. The response must be in plain text format (no markdown, no **, no ```). Each meal option should include the meal name, calories per 100g, and macros (protein, carbs, fats, fiber). Ensure the meal options are suitable for a diabetic person (low glycemic index), compatible with Indian cuisine, and strictly according to the user's past eating habits.",
           },
           {
             role: "user",
             content: `Generate a meal plan for a user with the following details: ${JSON.stringify(
               context
-            )}. The current time is ${currentTime}. Provide 3 meal options based on the time of the day.`,
+            )}. The current meal is lunch. Provide 3 meal options based on the type of the meal.`,
           },
         ],
         max_tokens: 500,
@@ -792,11 +792,15 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
       throw new Error("Invalid response from Together AI");
     }
 
-    const mealPlan = aiResponse.data.choices[0].message.content || "No meal plan generated.";
+    // Extract the meal plan response
+    let mealPlan = aiResponse.data.choices[0].message.content;
+
+    // Remove markdown formatting (e.g., **, ```) if present
+    mealPlan = mealPlan.replace(/\*\*/g, "").replace(/```/g, "").trim();
 
     console.log("Generated Meal Plan:", mealPlan);
 
-    // Return the meal plan
+    // Return the cleaned meal plan
     res.status(200).json({ success: true, mealPlan });
   } catch (error) {
     console.error("Error generating meal plan:", error.message || error);
