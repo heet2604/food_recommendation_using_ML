@@ -1322,7 +1322,7 @@ export default function DashboardHome() {
                  </div>
                  <h3 className="text-lg font-semibold mb-2">Recommendations</h3>
                  <p className="text-gray-400 text-sm text-center mb-4">Personalized nutrition tips based on your goals</p>
-                 <button onClick={() => navigate("/food_details")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                 <button onClick={() => navigate("/recommendations")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
                    View Insights
                  </button>
                </div>
@@ -1331,8 +1331,8 @@ export default function DashboardHome() {
                  <div className="rounded-full bg-green-500/10 p-4 mb-4">
                    <Activity className="w-8 h-8 text-green-500" />
                  </div>
-                 <h3 className="text-lg font-semibold mb-2">Workout Tracker</h3>
-                 <p className="text-gray-400 text-sm text-center mb-4">Log your workouts and track your activity</p>
+                 <h3 className="text-lg font-semibold mb-2">Personalized Chatbot</h3>
+                 <p className="text-gray-400 text-sm text-center mb-4">Subscribe to Premium for access</p>
                  <button className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
                    Coming Soon
                  </button>
@@ -1341,8 +1341,6 @@ export default function DashboardHome() {
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 }

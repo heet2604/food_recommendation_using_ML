@@ -347,7 +347,7 @@ function FoodDetails() {
         <div className="mt-8 text-center animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <button 
             className="bg-green-500 hover:bg-green-600 text-black font-medium px-8 py-3 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-green-500/20"
-            onClick={() => navigate('/search')}
+            onClick={() => navigate('/recommendations')}
           >
             Get More Recommendations
           </button>
