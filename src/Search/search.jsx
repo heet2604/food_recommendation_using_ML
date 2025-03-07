@@ -404,19 +404,6 @@ const Search = () => {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="w-full bg-gray-900 px-6 py-4 border-t border-green-500/20 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-gray-400 text-sm">
-            © 2023 Nourish. All rights reserved.
-          </div>
-          <div className="flex gap-4">
-            <a href="#" className="text-gray-400 hover:text-green-500 transition-colors">Terms</a>
-            <a href="#" className="text-gray-400 hover:text-green-500 transition-colors">Privacy</a>
-            <a href="#" className="text-gray-400 hover:text-green-500 transition-colors">Support</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
