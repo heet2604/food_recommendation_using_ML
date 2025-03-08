@@ -152,9 +152,9 @@ const Recommendations = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black px-4 py-8 md:py-16">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black px-4 py-8 md:py-12">
       {/* Navbar */}
-      <nav className="w-full bg-gray-900 px-6  border-b border-green-500/20 shadow-lg shadow-green-500/5 sticky top-0 z-50 mb-10">
+      <nav className="w-full bg-gray-900 px-6 border-b border-green-500/20 shadow-lg shadow-green-500/5 sticky top-0 z-50 mb-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <a href="/home" className="text-xl font-bold flex items-center gap-2 text-white">
           <FontAwesomeIcon
@@ -183,7 +183,7 @@ const Recommendations = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-8">
-            <a href="/home" className="nav-link flex items-center gap-2 text-green-500 font-medium">
+            <a href="/home" className="nav-link flex items-center gap-2 text-gray-400 font-medium">
               <HomeIcon className="w-4 h-4" />
               <span>Home</span>
             </a>

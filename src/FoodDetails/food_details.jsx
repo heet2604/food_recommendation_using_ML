@@ -315,7 +315,7 @@ function FoodDetails() {
         {/* Suggested Foods */}
         <div className="mt-10 animate-fade-in" style={{ animationDelay: "0.2s" }}>
           <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5">
-            <h2 className="text-xl font-semibold mb-6">Suggested Foods</h2>
+            <h2 className="text-xl font-semibold mb-6">We suggest healthy foods like : </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {suggestedFoods.map((food, index) => (
                 <div 
