@@ -217,14 +217,14 @@ function FoodDetails() {
         
         <div className="flex flex-col md:flex-row gap-8 items-start">
           {/* Food Card */}
-          <div className="md:w-1/3 flex flex-col space-y-6 animate-fade-in">
+          <div className="md:w-1/3 flex flex-col space-y-6 animate-fade-in mt-28">
             <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center">
               <div className="text-5xl mb-4">🍵</div>
               <h2 className="text-xl font-semibold mb-2">{foodData.food_name}</h2>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               
               <div className="w-full mt-8">
-                <div className="flex items-center justify-between mb-4">
+                {/* <div className="flex items-center justify-between mb-4">
                   <label htmlFor="quantity" className="text-gray-300 font-medium">Quantity (g)</label>
                   <input
                     id="quantity"
@@ -233,7 +233,7 @@ function FoodDetails() {
                     onChange={handleQuantityChange}
                     className="bg-gray-800 border border-green-500/30 text-white p-2 rounded text-center w-24"
                   />
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
