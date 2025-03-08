@@ -768,7 +768,7 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
             role: "user",
             content: `Generate a meal plan for a user with the following details: ${JSON.stringify(
               context
-            )}. The current meal is lunch. Provide 3 meal options based on the type of the meal.`,
+            )}. The current time is ${currentTime}. Provide 3 meal options based on the type of the meal.`,
           },
         ],
         max_tokens: 500,
