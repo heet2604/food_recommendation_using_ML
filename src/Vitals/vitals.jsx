@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "recharts";
 import { format } from "date-fns";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Activity, Droplet, Scale, ChevronUp, ChevronDown, Home as HomeIcon, User, Coffee, Zap } from "lucide-react";
 
 function Vitals() {
