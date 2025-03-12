@@ -192,7 +192,7 @@ const Search = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-8">
-            <a href="/" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+            <a href="/home" className="nav-link flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
               <HomeIcon className="w-4 h-4" />
               <span>Home</span>
             </a>
