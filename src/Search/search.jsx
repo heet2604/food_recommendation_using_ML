@@ -12,7 +12,7 @@ import {
   X,
   Menu,
   Plus,
-  Info
+  // Info
 } from "lucide-react";
 
 const Search = () => {
@@ -23,7 +23,7 @@ const Search = () => {
   const [quantity, setQuantity] = useState(100); // Default quantity 100g
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showMeasurements, setShowMeasurements] = useState(true);
+  //const [showMeasurements, setShowMeasurements] = useState(true);
 
   const handleSearch = async () => {
     if (!search.trim()) {
@@ -252,7 +252,7 @@ const Search = () => {
         </div>
       )}
 
-      {/* Standard Measurements Box */}
+      {/* Standard Measurements Box
       {showMeasurements && (
         <div className="fixed top-20 right-4 z-30 max-w-xs bg-gray-900 rounded-lg p-4 border border-green-500/30 shadow-lg shadow-green-500/5">
           <div className="flex justify-between items-center mb-2">
@@ -275,14 +275,14 @@ const Search = () => {
             <p>1 roti = 35g</p>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Main Content */}
       <div className="flex-1 px-4 py-8 max-w-7xl mx-auto w-full">
         <h1 className="text-2xl font-bold mb-6 text-center lg:text-left">Food Search</h1>
         <p className="text-gray-400 mb-8 text-center lg:text-left">Search for foods to see their nutritional information and add them to your daily intake.</p>
 
-        {!showMeasurements && (
+        {/* {!showMeasurements && (
           <button 
             onClick={() => setShowMeasurements(true)}
             className="absolute top-20 right-4 bg-gray-900 text-green-500 hover:bg-gray-800 p-2 rounded-lg border border-green-500/30 focus:outline-none focus:ring-2 focus:ring-green-500/50"
@@ -290,7 +290,7 @@ const Search = () => {
           >
             <Info className="w-5 h-5" />
           </button>
-        )}
+        )} */}
 
         <div className="flex flex-col items-center mb-10">
           <div className="w-full max-w-lg bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5">
