@@ -3,10 +3,87 @@ import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Home as HomeIcon, User, Coffee, Zap, BarChart3, Scale, Target } from "lucide-react";
+import { toast } from "react-toastify";
+import { Activity, Home as HomeIcon, User, Coffee, Zap, BarChart3, Scale, Target, Droplet } from "lucide-react";
 
 export default function DashboardHome() {
   const navigate = useNavigate();
+
+  const [waterGlasses, setWaterGlasses] = useState(0)
+  const [waterGoal, setWaterGoal] = useState(8)
+  const [isWaterModalOpen, setIsWaterModalOpen] = useState(false)
+  const [tempGoal, setTempGoal] = useState(waterGoal);
+
+  useEffect(() => {
+    const storedWaterIntake = localStorage.getItem("dailyWaterIntake");
+    const storedWaterGoal = localStorage.getItem("dailyWaterGoal");
+
+    const today = new Date().toDateString();
+
+    if (storedWaterIntake) {
+      try {
+        const { glasses, date } = JSON.parse(storedWaterIntake);
+
+        if (date !== today) {
+          setWaterGlasses(0); // Reset for a new day
+          localStorage.removeItem("dailyWaterIntake");
+        } else {
+          setWaterGlasses(glasses);
+        }
+      } catch (error) {
+        console.error("Error parsing dailyWaterIntake:", error);
+        localStorage.removeItem("dailyWaterIntake"); // Remove invalid data
+      }
+    }
+
+    if (storedWaterGoal) {
+      try {
+        setWaterGoal(JSON.parse(storedWaterGoal));
+      } catch (error) {
+        console.error("Error parsing dailyWaterGoal:", error);
+        setWaterGoal(8); // Set a default goal if parsing fails
+      }
+    } else {
+      setWaterGoal(8); // Default goal if not found
+    }
+  }, []);
+
+
+
+  //Add water
+  const addWaterGlass = () => {
+    if (waterGlasses < 20) {
+      setWaterGlasses(prev => prev + 1)
+      toast({
+        title: "Water Intake",
+        description: "Glass of water added!"
+      })
+    }
+  }
+
+  //remove water
+  const removeWaterGlass = () => {
+    setWaterGlasses(prev => Math.max(0, prev - 1))
+    toast({
+      title: "Water Intake",
+      description: "Glass of water removed!"
+    })
+  }
+
+  //Handler to water goal
+  const handleSetWaterGoal = (e) => {
+    e.preventDefault(); // Prevent any default form submission
+  
+    // Ensure tempGoal is a valid number
+    if (!tempGoal || isNaN(tempGoal) || tempGoal <= 0) {
+      alert("Please enter a valid number greater than 0!");
+      return;
+    }
+  
+    setWaterGoal(tempGoal);
+    setIsWaterModalOpen(false);
+  };
+  
 
   // State for fetched goals
   const [dailyGoals, setDailyGoals] = useState({
@@ -62,7 +139,7 @@ export default function DashboardHome() {
         });
         if (response.data.success) {
           setCalories(response.data.calories);
-    
+
           // Map backend keys to frontend keys
           setNutrients({
             Protein: response.data.nutrients.protein || 0,
@@ -74,7 +151,7 @@ export default function DashboardHome() {
       } catch (err) {
         console.error(err);
       }
-    };  
+    };
 
     fetchGoal();
     fetchDashboardData();
@@ -181,6 +258,84 @@ export default function DashboardHome() {
 
       {/* Main Content */}
       <div className="flex-1 px-4 py-8 max-w-7xl mx-auto w-full">
+
+        {/* Water Tracking Section */}
+        <div className="mb-8 bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <Droplet
+            className={`h-6 w-6 ${waterGlasses >= waterGoal ? "text-green-500" : "text-blue-400"}`}
+          />
+          <h2 className="text-xl font-semibold">Water Intake</h2>
+        </div>
+        <button 
+          onClick={() => setIsWaterModalOpen(true)} 
+          className="text-green-500 hover:text-green-400 transition-colors"
+        >
+          Manage
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="text-3xl font-bold">
+            {waterGlasses} / {waterGoal}
+          </div>
+          <div className="text-gray-400 mt-1">Glasses of Water</div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={removeWaterGlass}
+            className="bg-gray-800 text-white p-2 rounded-full hover:bg-gray-700 w-10 h-10 flex items-center justify-center"
+          >
+            -
+          </button>
+          <button
+            onClick={addWaterGlass}
+            className="bg-green-500 text-black p-2 rounded-full hover:bg-green-600 w-10 h-10 flex items-center justify-center"
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Water Goal Modal */}
+      {isWaterModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center" 
+          onClick={() => setIsWaterModalOpen(false)}
+        >
+          <div 
+            className="bg-gray-800 p-6 rounded-lg shadow-lg w-80"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
+          >
+            <h2 className="text-xl font-semibold mb-4">Set Water Goal</h2>
+            <input
+              type="number"
+              className="bg-gray-700 text-white p-2 rounded w-full"
+              placeholder="Enter goal (glasses)"
+              value={tempGoal}
+              onChange={(e) => setTempGoal(Number(e.target.value))}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button 
+                onClick={() => setIsWaterModalOpen(false)}
+                className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSetWaterGoal}
+                className="bg-green-500 text-black px-4 py-2 rounded hover:bg-green-600"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+
         <h1 className="text-2xl font-bold mb-8 text-center lg:text-left">Today's Overview</h1>
 
         <div className="flex flex-col lg:flex-row gap-10">
@@ -257,47 +412,47 @@ export default function DashboardHome() {
               {/* Health Tiles */}
               {/* ... (same as your original code) ... */}
               <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
-                 <div className="rounded-full bg-green-500/10 p-4 mb-4">
-                   <BarChart3 className="w-8 h-8 text-green-500" />
-                 </div>
-                 <h3 className="text-lg font-semibold mb-2">Sugar Levels</h3>
-                 <p className="text-gray-400 text-sm text-center mb-4">Track your blood glucose levels over time</p>
-                 <button onClick={() => navigate("/vitals")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                                     Add Reading
-                 </button>
-               </div>
-              
-               <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
-                 <div className="rounded-full bg-green-500/10 p-4 mb-4">                  <Scale className="w-8 h-8 text-green-500" />
-                 </div>
-                 <h3 className="text-lg font-semibold mb-2">Body Weight</h3>
-                 <p className="text-gray-400 text-sm text-center mb-4">Log your weight to track progress over time</p>
-                 <button onClick={() => navigate("/vitals")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                   Add Reading
+                <div className="rounded-full bg-green-500/10 p-4 mb-4">
+                  <BarChart3 className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Sugar Levels</h3>
+                <p className="text-gray-400 text-sm text-center mb-4">Track your blood glucose levels over time</p>
+                <button onClick={() => navigate("/vitals")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                  Add Reading
                 </button>
-               </div>
-              
-               <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
-                 <div className="rounded-full bg-green-500/10 p-4 mb-4">
-                   <Target className="w-8 h-8 text-green-500" />
-                 </div>
-                 <h3 className="text-lg font-semibold mb-2">Recommendations</h3>
-                 <p className="text-gray-400 text-sm text-center mb-4">Personalized nutrition tips based on your goals</p>
-                 <button onClick={() => navigate("/recommendations")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                   View Insights
-                 </button>
-               </div>
-              
-               <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
-                 <div className="rounded-full bg-green-500/10 p-4 mb-4">
-                   <Activity className="w-8 h-8 text-green-500" />
-                 </div>
-                 <h3 className="text-lg font-semibold mb-2">Personalized Chatbot</h3>
-                 <p className="text-gray-400 text-sm text-center mb-4">Subscribe to Premium for access</p>
-                 <a href="https://wa.me/15551810144" className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
-                   Chat now
-                 </a>
-               </div>
+              </div>
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
+                <div className="rounded-full bg-green-500/10 p-4 mb-4">                  <Scale className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Body Weight</h3>
+                <p className="text-gray-400 text-sm text-center mb-4">Log your weight to track progress over time</p>
+                <button onClick={() => navigate("/vitals")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                  Add Reading
+                </button>
+              </div>
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
+                <div className="rounded-full bg-green-500/10 p-4 mb-4">
+                  <Target className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Recommendations</h3>
+                <p className="text-gray-400 text-sm text-center mb-4">Personalized nutrition tips based on your goals</p>
+                <button onClick={() => navigate("/recommendations")} className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                  View Insights
+                </button>
+              </div>
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
+                <div className="rounded-full bg-green-500/10 p-4 mb-4">
+                  <Activity className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Personalized Chatbot</h3>
+                <p className="text-gray-400 text-sm text-center mb-4">Subscribe to Premium for access</p>
+                <a href="https://wa.me/15551810144" className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                  Chat now
+                </a>
+              </div>
             </div>
           </div>
         </div>

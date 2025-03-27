@@ -23,6 +23,7 @@ const Search = () => {
   const [quantity, setQuantity] = useState(100); // Default quantity 100g
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
   //const [showMeasurements, setShowMeasurements] = useState(true);
 
   const handleSearch = async () => {
