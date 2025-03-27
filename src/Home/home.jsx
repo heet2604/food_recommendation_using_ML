@@ -53,17 +53,26 @@ export default function DashboardHome() {
   //Add water
   const addWaterGlass = () => {
     if (waterGlasses < 20) {
-      setWaterGlasses(prev => prev + 1)
+      const newWater = Math.min(20,waterGlasses+1)
+      setWaterGlasses(newWater)
+      const today = new Date().toDateString()
+      localStorage.setItem("dailyWaterIntake",JSON.stringify({glasses : newWater,date:today}))
       toast({
         title: "Water Intake",
         description: "Glass of water added!"
       })
     }
+    else{
+      toast({description:"Take care of overhydration"})
+    }
   }
 
   //remove water
   const removeWaterGlass = () => {
-    setWaterGlasses(prev => Math.max(0, prev - 1))
+    const newWater = Math.max(0,waterGlasses-1)
+      setWaterGlasses(newWater)
+      const today = new Date().toDateString()
+      localStorage.setItem("dailyWaterIntake",JSON.stringify({glasses : newWater,date:today}))
     toast({
       title: "Water Intake",
       description: "Glass of water removed!"
