@@ -4,7 +4,7 @@ import "react-circular-progressbar/dist/styles.css";
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
-import { Activity, Home as HomeIcon, User, Coffee, Zap, BarChart3, Scale, Target, Droplet } from "lucide-react";
+import { Activity, Home as HomeIcon, User, Coffee, Zap, BarChart3, Scale, Target, Droplet, FileText } from "lucide-react";
 
 export default function DashboardHome() {
   const navigate = useNavigate();
@@ -462,6 +462,18 @@ export default function DashboardHome() {
                   Chat now
                 </a>
               </div>
+
+              <div className="bg-gray-900 rounded-xl p-6 border border-green-500/20 shadow-lg shadow-green-500/5 flex flex-col items-center hover:border-green-500/40 transition-all duration-300">
+                <div className="rounded-full bg-green-500/10 p-4 mb-4">
+                  <FileText className="w-8 h-8 text-green-500" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Summarize Medical Reports</h3>
+                <p className="text-gray-400 text-sm text-center mb-4">Provides a simple summary about your complex medical reports</p>
+                <a href="/medical" className="mt-auto bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200">
+                  Explore
+                </a>
+              </div>
+
             </div>
           </div>
         </div>
