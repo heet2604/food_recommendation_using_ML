@@ -12,6 +12,12 @@ const authMiddleware = require("./middleware/auth");
 const Food = require("./models/selectedFood");
 const axios = require("axios");
 const DailyIntake = require('./models/dailyIntake.js');
+const multer = require("multer")
+// const Tesseract = require("tesseract.js")
+const fs = require("fs")
+const path = require('path')
+const FormData = require("form-data");
+
 
 const port = 5000;
 app.use(express.json());
@@ -430,6 +436,7 @@ app.put("/profile", authMiddleware, async (req, res) => {
 // New Routes for Vitals
 const Vitals = require("./models/vitals");
 const { parse } = require("dotenv");
+const c = require("config");
 
 
 
@@ -807,6 +814,65 @@ app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
   }
 });
+
+
+const upload = multer({ dest: "uploads/" });
+
+app.post("/api/medical", upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    const filePath = path.join(__dirname, req.file.path);
+    if (!fs.existsSync(filePath)) return res.status(500).json({ error: "Uploaded file not found" });
+
+    console.log("📤 Sending image to OCR server:", filePath);
+
+    // Send image to OCR server
+    const formData = new FormData();
+    formData.append("file", fs.createReadStream(filePath));
+
+    const ocrResponse = await axios.post("http://127.0.0.1:5001/ocr", formData, {
+      headers: { ...formData.getHeaders() },
+    });
+
+    let extractedText = ocrResponse.data.text;
+    console.log("✅ OCR Processed successfully:", extractedText);
+
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    // 🛠 Step 2: Send extracted text to OpenAI (or Together AI)
+    const simplifiedText = await simplifyText(extractedText);
+    
+    // Remove asterisks and format each line
+    const formattedText = simplifiedText.replace(/\*/g, "").split("\n").map(line => line.trim()).join("\n");
+
+    res.json({ extractedText: formattedText });
+
+  } catch (error) {
+    console.error("❌ Error in processing image:", error.message);
+    res.status(500).json({ error: "Failed to process the image." });
+  }
+});
+
+// 🛠 Function to Simplify Text using OpenAI GPT (or Together AI)
+async function simplifyText(text) {
+  try {
+    const response = await axios.post(
+      "https://api.together.xyz/v1/chat/completions",  // Use Together AI API
+      {
+        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        messages: [{ role: "user", content: `Simplify this medical report into easy language:\n\n${text}` }],
+        temperature: 0.7,
+      },
+      { headers: { Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`, "Content-Type": "application/json" } }
+    );
+
+    return response.data.choices[0].message.content;
+  } catch (error) {
+    console.error("❌ AI Summarization Failed:", error.message);
+    return "Failed to simplify the text.";
+  }
+}
 
 app.listen(port, () => {
   console.log(`Live at port ${port}`);

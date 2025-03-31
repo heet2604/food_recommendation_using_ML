@@ -15,6 +15,7 @@
   import ProfilePage from "./Profile/profile";
   import Welcome from "./Login/Welcome.jsx"
   import Premium from "./Premium/premium.jsx";
+  import Medical from './Medical/medical.jsx';
 
   function App() {
     return (
@@ -34,7 +35,8 @@
             <Route path="/calculateGoal" element={<ProtectedRoute><CalcForm/></ProtectedRoute>}/>
             <Route path="/profile" element={<ProtectedRoute><ProfilePage/></ProtectedRoute>}></Route>
             <Route path="/welcome" element={<ProtectedRoute><Welcome/></ProtectedRoute>}></Route>
-            <Route path="/premium" element={<ProtectedRoute><Premium/></ProtectedRoute>}></Route> */
+            <Route path="/premium" element={<ProtectedRoute><Premium/></ProtectedRoute>}></Route>
+            <Route path="/medical" element={<ProtectedRoute><Medical/></ProtectedRoute>}></Route>
           </Routes>
         </Router>
       </div>
