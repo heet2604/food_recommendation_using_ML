@@ -220,7 +220,7 @@ export default function Medical() {
                 </div>
               )}
 
-              {extractedText && (
+              {/* {extractedText && (
                 <div className="mt-6 flex justify-end">
                   <button className="bg-transparent hover:bg-green-500/10 text-green-500 border border-green-500/50 font-medium px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -229,7 +229,7 @@ export default function Medical() {
                     Save Results
                   </button>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>
