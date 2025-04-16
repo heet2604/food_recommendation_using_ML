@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from paddleocr import PaddleOCR
 import os
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+
 
 app = Flask(__name__)
 

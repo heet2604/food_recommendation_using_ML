@@ -17,6 +17,8 @@ const multer = require("multer")
 const fs = require("fs")
 const path = require('path')
 const FormData = require("form-data");
+const {spawn} = require("child_process")
+const uploads = multer({dest : "uploads/"})
 
 
 const port = 5000;
@@ -854,7 +856,7 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
   }
 });
 
-// 🛠 Function to Simplify Text using OpenAI GPT (or Together AI)
+// Function to Simplify Text using OpenAI GPT (or Together AI)
 async function simplifyText(text) {
   try {
     const response = await axios.post(
@@ -873,6 +875,63 @@ async function simplifyText(text) {
     return "Failed to simplify the text.";
   }
 }
+
+// integrating the yolov8 training and the llm model
+app.post("/upload",upload.single("file"),async (req,res)=>{
+  const file = req.file;       //file is saved temp. and can be accesed
+
+  //convert image to base64
+  const imageBuffer = fs.readFileSync(file.path);
+  const base64image = imageBuffer.toString("base64");
+
+  //call python code
+  const py = spawn("python3",["detect.py"]);
+  py.stdin.write(base64image)
+  py.stdin.end()
+
+  let detectedLabel = "";
+  py.stdout.on("data",(data)=>{
+    detectedLabel+=data.toString()
+  })
+
+  py.on("close",async ()=>{
+    const prompt = `Provide nutritional information for "${detectedLabel.trim()}" including :
+    -Calories(kcal)
+    -Protein(g)
+    -Carbohydrates(g)
+    -Fats(g)
+    -Fiber(g)
+    -Glycemic Index
+    Respond is JSON format with keys : food_name,calories,protein,fat,fiber,glycemic_index.
+    `;
+
+    try{
+      const llmRes = await axios.post("https://api/together.xyz/v1/chat/completions",
+        {
+          model : "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+          messages : [{role:"user",content:prompt}],
+          temperature : 0.5,
+        },
+        {
+          headers : {
+            Authorization : `Bearer ${process.env.TOGETHER_API_KEY}`,
+            "Content-Type" : "application/json",
+          },
+        },
+      );
+      res.json({
+        detected_food : detectedLabel.trim(),
+        macros : llmRes.data.choices[0].message.content,
+      })
+    }
+    catch(error){
+      res.status(500).json({error : "LLM error",details : error})
+    }
+    finally{
+      fs.unlinkSync(file.path)   //cleanup
+    }
+  })
+});
 
 app.listen(port, () => {
   console.log(`Live at port ${port}`);

@@ -16,6 +16,7 @@
   import Welcome from "./Login/Welcome.jsx"
   import Premium from "./Premium/premium.jsx";
   import Medical from './Medical/medical.jsx';
+  import FoodImage from './FoodImage/foodImage.jsx';
 
   function App() {
     return (
@@ -37,6 +38,7 @@
             <Route path="/welcome" element={<ProtectedRoute><Welcome/></ProtectedRoute>}></Route>
             <Route path="/premium" element={<ProtectedRoute><Premium/></ProtectedRoute>}></Route>
             <Route path="/medical" element={<ProtectedRoute><Medical/></ProtectedRoute>}></Route>
+            <Route path="/foodimage" element={<ProtectedRoute><FoodImage/></ProtectedRoute>}></Route>
           </Routes>
         </Router>
       </div>
