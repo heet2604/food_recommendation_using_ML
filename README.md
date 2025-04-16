@@ -1,70 +1,45 @@
-# Getting Started with Create React App
+# 🥗 Nourish - Intelligent Food Recommendation System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Nourish is a smart food recommendation platform designed to help individuals—especially those with health conditions like diabetes or insulin resistance—make healthier dietary choices. It suggests nutritious alternatives, tracks blood sugar levels, and helps users stay on top of their health goals through progress tracking, gamification, and a WhatsApp chatbot.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Features
 
-### `npm start`
+- 🔍 **Food Search & Recommendations**  
+  Search for food items and get healthier alternatives with detailed nutritional info.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- 📈 **Blood Sugar Level Tracking**  
+  Log and track blood sugar levels. Get personalized recommendations based on sugar spikes.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- 🧠 **Recommendation Engine**  
+  - Content-Based Filtering  
+  - Collaborative Filtering  
+  Built using JavaScript to reduce API call costs and latency.
 
-### `npm test`
+- 🥦 **Food Image Recognition**  
+  Upload food images to get food names and macro information using YOLOv8 (custom-trained on Roboflow).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- 📊 **Weekly Progress Tracker**  
+  Visualize your dietary progress and sugar levels over time.
 
-### `npm run build`
+- 🧾 **Medical Report Upload & Summarization**  
+  Upload medical reports; extract text using PaddleOCR and summarize it into simple language using OpenAI (LLaMA 3.0 Turbo).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- 💬 **WhatsApp Chatbot**  
+  AI-powered chatbot for simple food recommendations and interaction.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- 🧪 **Gamification & Community Support**  
+  Earn points, badges, and connect with others on a similar journey.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## 🛠 Tech Stack
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+| Frontend         | Backend            | ML & AI Models       | Other Tools           |
+|------------------|--------------------|----------------------|------------------------|
+| React.js         | Node.js, Express   | YOLOv8, LLaMA 3.0    | PaddleOCR, Together AI |
+| Tailwind CSS     | MongoDB            | Collaborative Filtering (JS) | Roboflow (Custom Dataset) |
+| WhatsApp Cloud API | JWT, Bcrypt, OTP  | Content-Based Filtering (JS) | GitHub Actions (CI/CD)   |
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
