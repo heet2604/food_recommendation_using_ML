@@ -849,7 +849,7 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
     const formattedText = simplifiedText.replace(/\*/g, "").split("\n").map(line => line.trim()).join("\n");
 
     res.json({ extractedText: formattedText });
-
+    
   } catch (error) {
     console.error("❌ Error in processing image:", error.message);
     res.status(500).json({ error: "Failed to process the image." });
