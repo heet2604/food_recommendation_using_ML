@@ -1,15 +1,32 @@
+# Node-related
 node_modules
-.env
-.git
+npm-debug.log
+
+# Python-related
 __pycache__/
 *.pyc
-.DS_Store
+venv/
+
+# Environment files
+.env
+
+# Git-related
+.git
+
+# Logs
 *.log
+
+# Databases and backups
 *.sqlite
 *.db
 *.zip
 *.tar.gz
-venv/
-npm-debug.log
+
+# Uploads and other runtime-generated content
 uploads/
+
+# Trained models or other large files
 *.traineddata
+
+# System files
+.DS_Store
