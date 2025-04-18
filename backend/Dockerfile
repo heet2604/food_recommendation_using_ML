@@ -3,7 +3,7 @@ FROM nikolaik/python-nodejs:python3.9-nodejs18
 WORKDIR /app
 
 # Copy requirements files first for better caching
-COPY COPY backend/requirements.txt backend/package.json backend/package-lock.json ./
+COPY backend/requirements.txt backend/package.json backend/package-lock.json ./
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
