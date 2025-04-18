@@ -22,4 +22,4 @@ ENV PORT=5000
 EXPOSE $PORT
 
 # Command to run the application
-CMD ["node", "/app/server.js"]
+CMD ["node", "server.js"]
