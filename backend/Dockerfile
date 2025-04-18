@@ -1,18 +1,16 @@
 FROM nikolaik/python-nodejs:python3.9-nodejs18
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the requirements files for better caching
+# Copy requirements files first for better caching
 COPY backend/requirements.txt backend/package.json backend/package-lock.json ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
 
-# Install Node.js dependencies
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 RUN npm ci
 
-# Copy the rest of the application files (including server.js) to /app
+# Copy the rest of the application
 COPY . .
 
 # Set environment variables
