@@ -40,7 +40,7 @@ function Vitals() {
   const addVitalsReading = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/api/vitals",
+        "https://food-recommendation-using-ml-1.onrender.com/api/vitals",
         { sugarReading, weightReading },
         {
           headers: {

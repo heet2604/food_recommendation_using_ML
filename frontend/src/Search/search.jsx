@@ -119,7 +119,7 @@ const Search = () => {
   
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/add-food",
+        "https://food-recommendation-using-ml-1.onrender.com/api/add-food",
         foodWithQuantity,
         {
           headers: {
