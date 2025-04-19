@@ -3,8 +3,7 @@ FROM nikolaik/python-nodejs:python3.9-nodejs18
 WORKDIR /app
 
 # Copy only the necessary files for dependencies first
-COPY backend/requirements.txt ./
-COPY backend/package*.json ./
+COPY backend/requirements.txt backend/package.json backend/package-lock.json ./
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -20,4 +19,4 @@ ENV PORT=5000
 EXPOSE $PORT
 
 # Command to run the application
-CMD ["node", "backend/server.js"]
+CMD ["node", "server.js"]
