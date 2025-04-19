@@ -26,12 +26,11 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "https://food-recommendation-using-ml.vercel.app",
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"]
+    origin: "https://food-recommendation-using-ml.vercel.app", // Allow requests from your frontend
+    credentials: true, // Allow cookies/sessions with requests
   })
 );
+app.use(express.urlencoded({ extended: true }));
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
