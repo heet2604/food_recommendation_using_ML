@@ -2,22 +2,23 @@ FROM nikolaik/python-nodejs:python3.9-nodejs18
 
 WORKDIR /app
 
-# Copy only the necessary files for dependencies first
+# Copy dependency files first
 COPY requirements.txt ./
 COPY package*.json ./
 
-# Install dependencies
+# Install Python and Node.js dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 RUN npm ci
 
-# Now copy the rest of the application files
+# Copy the rest of your code
 COPY . .
 
-# Set environment variables
+# Set environment variable
 ENV PORT=5000
 
-# Expose the port
-EXPOSE $PORT
+# Expose both ports
+EXPOSE 3000
+EXPOSE 5000
 
-# Command to run the application
-CMD ["node", "server.js"]
+# Start both servers: Flask (ocr_server.py) and Node.js (server.js)
+CMD ["sh", "-c", "python3 ocr_server.py & node server.js"]
