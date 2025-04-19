@@ -26,7 +26,6 @@ ENV PORT=5000
 # Expose both ports
 EXPOSE 3000
 EXPOSE 5000
-EXPOSE 5001
 
 # Start both servers: Flask (ocr_server.py) and Node.js (server.js)
 CMD ["sh", "-c", "python3 ocr_server.py & node server.js"]

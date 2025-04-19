@@ -4,4 +4,3 @@ pillow
 opencv-python
 paddlepaddle
 paddleocr
-flask_cors
