@@ -826,37 +826,68 @@ const upload = multer({ dest: "uploads/" });
 
 app.post("/api/medical", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    if (!req.file) {
+      console.error("❌ No file uploaded");
+      return res.status(400).json({ error: "No file uploaded" });
+    }
 
-    const filePath = path.join(__dirname, req.file.path);
-    if (!fs.existsSync(filePath)) return res.status(500).json({ error: "Uploaded file not found" });
+    console.log("📤 Received file:", req.file);
 
-    console.log("📤 Sending image to OCR server:", filePath);
+    // Add file validation
+    if (!req.file.mimetype.startsWith('image/')) {
+      console.error("❌ Invalid file type:", req.file.mimetype);
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: "Only image files are allowed" });
+    }
 
-    // Send image to OCR server
     const formData = new FormData();
-    formData.append("file", fs.createReadStream(filePath));
-
-    const ocrResponse = await axios.post("https://food-recommendation-using-ml.onrender.com/ocr", formData, {
-      headers: { ...formData.getHeaders() },
+    formData.append("file", fs.createReadStream(req.file.path), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
     });
 
-    let extractedText = ocrResponse.data.text;
-    console.log("✅ OCR Processed successfully:", extractedText);
+    console.log("🔗 Sending to OCR server...");
+    const ocrResponse = await axios.post(
+      `${process.env.OCR_SERVER_URL || 'http://localhost:5000'}/ocr`,
+      formData,
+      { 
+        headers: { 
+          ...formData.getHeaders(),
+          "Accept-Encoding": "gzip,deflate,compress" 
+        },
+        timeout: 30000 // 30 seconds timeout
+      }
+    ).catch(err => {
+      console.error("❌ OCR API Error:", err.response?.data || err.message);
+      throw err;
+    });
 
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    console.log("✅ OCR Response:", ocrResponse.data);
+    fs.unlinkSync(req.file.path);
 
-    // 🛠 Step 2: Send extracted text to OpenAI (or Together AI)
-    const simplifiedText = await simplifyText(extractedText);
-    
-    // Remove asterisks and format each line
-    const formattedText = simplifiedText.replace(/\*/g, "").split("\n").map(line => line.trim()).join("\n");
+    // Simplify text
+    console.log("🧠 Sending to AI for simplification...");
+    const simplifiedText = await simplifyText(ocrResponse.data.text)
+      .catch(err => {
+        console.error("❌ AI Simplification Error:", err);
+        return "Could not simplify text: " + err.message;
+      });
 
-    res.json({ extractedText: formattedText });
+    res.json({ 
+      extractedText: simplifiedText.replace(/\*/g, ""),
+      status: "success"
+    });
     
   } catch (error) {
-    console.error("❌ Error in processing image:", error.message);
-    res.status(500).json({ error: "Failed to process the image." });
+    console.error("🚨 Full Error:", error);
+    if (req.file?.path) {
+      try { fs.unlinkSync(req.file.path); } 
+      catch (cleanupErr) { console.error("Cleanup failed:", cleanupErr); }
+    }
+    res.status(500).json({ 
+      error: "Image processing failed",
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
