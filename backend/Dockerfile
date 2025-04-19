@@ -10,7 +10,7 @@ COPY package*.json ./
 RUN pip install --no-cache-dir -r requirements.txt
 RUN npm ci
 
-# Copy the rest of code
+# Copy the rest of your code
 COPY . .
 
 # Set environment variable
