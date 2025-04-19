@@ -46,11 +46,11 @@ function FoodDetails() {
 
       let response;
       if (location.state && location.state.foodId) {
-        response = await axios.get(`https://food-recommendation-using-ml-1.onrender.com/api/selected-food/${location.state.foodId}`, {
+        response = await axios.get(`http://localhost:5000/api/selected-food/${location.state.foodId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        response = await axios.get(`https://food-recommendation-using-ml-1.onrender.com/api/latest-food/${userId}`, {
+        response = await axios.get(`http://localhost:5000/api/latest-food/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }

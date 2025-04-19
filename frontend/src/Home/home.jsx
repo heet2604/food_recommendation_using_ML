@@ -117,7 +117,7 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchGoal = async () => {
       try {
-        const response = await axios.get("https://food-recommendation-using-ml-1.onrender.com/api/fetchGoal", {
+        const response = await axios.get("http://localhost:5000/api/fetchGoal", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`, // Send JWT if required
           },

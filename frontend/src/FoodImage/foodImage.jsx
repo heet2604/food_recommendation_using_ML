@@ -61,7 +61,7 @@ const FoodImage = () => {
 
       // Send image to backend for analysis
       const response = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/detect-food",
+        "http://localhost:5000/api/detect-food",
         formData,
         {
           headers: {

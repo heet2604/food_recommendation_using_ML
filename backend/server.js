@@ -26,7 +26,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: "https://food-recommendation-using-ml.vercel.app", // Allow requests from your frontend
+    origin: "http://localhost:3000", // Allow requests from your frontend
     credentials: true, // Allow cookies/sessions with requests
   })
 );

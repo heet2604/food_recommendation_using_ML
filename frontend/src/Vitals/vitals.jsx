@@ -22,7 +22,7 @@ function Vitals() {
 
   const fetchVitals = async () => {
     try {
-      const response = await axios.get("https://food-recommendation-using-ml-1.onrender.com/api/vitals", {
+      const response = await axios.get("http://localhost:5000/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
