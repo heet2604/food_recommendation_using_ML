@@ -477,7 +477,7 @@ const ProfilePage = () => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem("token")
-                const response = await axios.get("http://localhost:5000/profile", {
+                const response = await axios.get("https://food-recommendation-using-ml-1.onrender.com/profile", {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });

@@ -43,7 +43,7 @@ const Search = () => {
       setIsLoading(true);
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
-        "http://localhost:5000/api/analyze",
+        "https://food-recommendation-using-ml-1.onrender.com/api/analyze",
         { food: formattedSearch },
         { headers: { "Content-Type": "application/json" } }
       );

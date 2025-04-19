@@ -30,7 +30,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/login", {
+      const response = await axios.post("https://food-recommendation-using-ml-1.onrender.com/login", {
         username,
         password,
       });
