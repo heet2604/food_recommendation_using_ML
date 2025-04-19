@@ -3,52 +3,46 @@ from paddleocr import PaddleOCR
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
+
 app = Flask(__name__)
 
-# Enhanced CORS configuration
+# Enable CORS if calling from another server
 from flask_cors import CORS
-CORS(app, resources={
-    r"/ocr": {
-        "origins": [
-            "https://food-recommendation-using-ml.vercel.app",  # Your Vercel frontend
-            "https://food-recommendation-using-ml.onrender.com"  # Your Node backend
-        ],
-        "methods": ["POST"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+CORS(app, resources={r"/ocr": {"origins": "*"}})
 
-ocr = PaddleOCR(use_angle_cls=True, lang="en")
+ocr = PaddleOCR(use_angle_cls=True, lang="en")  # English OCR Model
+
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # Create upload directory if not exists
 
 @app.route("/ocr", methods=["POST"])
 def process_image():
     if "file" not in request.files:
+        print("🚨 No file found in request")
         return jsonify({"error": "No file uploaded"}), 400
 
     file = request.files["file"]
-    if file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    
     try:
-        # Process in memory without saving to disk
-        img_bytes = file.read()
-        results = ocr.ocr(img_bytes, cls=True)
-        
-        extracted_text = "\n".join(
-            line[1][0] for res in results for line in res if len(line) > 1
-        ) if results else ""
-        
-        return jsonify({
-            "text": extracted_text,
-            "status": "success"
-        })
-        
+        file.save(file_path)  # Save uploaded file
+        print(f"🔍 Processing file: {file_path}")
+
+        # Perform OCR
+        results = ocr.ocr(file_path, cls=True)
+
+        # Extract text from results
+        extracted_text = "\n".join([line[1][0] for res in results for line in res])
+
+        os.remove(file_path)  # Clean up file
+
+        print(f"✅ OCR extraction successful. Extracted Text: {extracted_text[:100]}...")  # Show first 100 chars
+        return jsonify({"text": extracted_text})
+    
     except Exception as e:
-        return jsonify({
-            "error": "OCR processing failed",
-            "details": str(e)
-        }), 500
+        print(f"❌ OCR processing failed: {e}")
+        return jsonify({"error": "OCR processing failed"}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, threaded=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
