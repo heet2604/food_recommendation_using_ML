@@ -34,7 +34,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("https://food-recommendation-using-ml.onrender.com/signup", {
+      const response = await axios.post("https://food-recommendation-using-ml-1.onrender.com/signup", {
         firstname,
         lastname,
         contact,

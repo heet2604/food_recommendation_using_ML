@@ -141,7 +141,7 @@ export default function DashboardHome() {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get("https://food-recommendation-using-ml.onrender.com/api/dashboard-data", {
+        const response = await axios.get("https://food-recommendation-using-ml-1.onrender.com/api/dashboard-data", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

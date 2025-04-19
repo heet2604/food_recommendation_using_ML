@@ -18,7 +18,7 @@ const Recommendations = () => {
     try {
       
       const response = await axios.post(
-        "https://food-recommendation-using-ml.onrender.com/api/generate-meal-plan",
+        "https://food-recommendation-using-ml-1.onrender.com/api/generate-meal-plan",
         {},
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")} `},

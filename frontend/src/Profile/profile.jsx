@@ -477,7 +477,7 @@ const ProfilePage = () => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem("token")
-                const response = await axios.get("https://food-recommendation-using-ml.onrender.com/profile", {
+                const response = await axios.get("https://food-recommendation-using-ml-1.onrender.com/profile", {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });
@@ -505,7 +505,7 @@ const ProfilePage = () => {
                 lastname: user.lastname,
                 contact: user.contact
             }
-            await axios.put("https://food-recommendation-using-ml.onrender.com/profile", updatedProfile, {
+            await axios.put("http://localhost:5000/profile", updatedProfile, {
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
             });
