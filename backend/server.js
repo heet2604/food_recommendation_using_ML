@@ -36,7 +36,10 @@ app.use(
 const JWT_SECRET = process.env.JWT_SECRET;
 
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI,{
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("Connected to Database"))
   .catch((err) => console.log(err));
 
