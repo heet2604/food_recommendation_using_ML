@@ -61,7 +61,7 @@ const FoodImage = () => {
 
       // Send image to backend for analysis
       const response = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/detect-food",
+        "https://food-recommendation-using-ml.onrender.com/api/detect-food",
         formData,
         {
           headers: {
@@ -93,7 +93,7 @@ const FoodImage = () => {
     try {
       // Request nutritional info from LLM service
       const response = await axios.post(
-        "http://localhost:5000/api/get-food-macros",
+        "https://food-recommendation-using-ml.onrender.com/api/get-food-macros",
         { foodName: detectedFood },
         {
           headers: {

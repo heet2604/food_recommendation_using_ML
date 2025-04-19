@@ -43,7 +43,7 @@ const Search = () => {
       setIsLoading(true);
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/analyze",
+        "https://food-recommendation-using-ml.onrender.com/api/analyze",
         { food: formattedSearch },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -119,7 +119,7 @@ const Search = () => {
   
     try {
       const response = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/add-food",
+        "https://food-recommendation-using-ml.onrender.com/api/add-food",
         foodWithQuantity,
         {
           headers: {

@@ -35,7 +35,7 @@ export default function Medical() {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("https://food-recommendation-using-ml-1.onrender.com/api/medical", formData, {
+      const { data } = await axios.post("https://food-recommendation-using-ml.onrender.com/api/medical", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
