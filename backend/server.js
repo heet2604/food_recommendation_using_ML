@@ -848,7 +848,7 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
 
     console.log("🔗 Sending to OCR server...");
     const ocrResponse = await axios.post(
-      `${process.env.OCR_SERVER_URL || 'http://localhost:5000'}/ocr`,
+      `https://food-recommendation-using-ml.onrender.com/ocr`,
       formData,
       { 
         headers: { 
