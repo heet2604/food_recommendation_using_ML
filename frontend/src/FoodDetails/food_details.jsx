@@ -97,7 +97,7 @@ function FoodDetails() {
       };
 
       await axios.post(
-        "http://localhost:5000/api/add-food-to-dashboard",
+        "https://food-recommendation-using-ml-1.onrender.com/api/add-food-to-dashboard",
         nutritionalData,
         {
           headers: { Authorization: `Bearer ${token}` }
