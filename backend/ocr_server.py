@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # Enable CORS if calling from another server
 from flask_cors import CORS
-CORS(app)
+CORS(app, resources={r"/ocr": {"origins": "*"}})
 
 ocr = PaddleOCR(use_angle_cls=True, lang="en")  # English OCR Model
 
