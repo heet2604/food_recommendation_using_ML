@@ -9,8 +9,8 @@ function Landing() {
 
   useEffect(() => {
     setIsLoaded(true);
-
-    axios.get('http://localhost:3000')
+    const apiUrl = 'https://your-render-backend-service.onrender.com';
+    axios.get(apiUrl)
       .then(response => {
         console.log('Data fetched from backend:', response.data);
       })

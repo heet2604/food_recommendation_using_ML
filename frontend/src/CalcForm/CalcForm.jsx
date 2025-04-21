@@ -32,7 +32,7 @@ const CalcForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5000/api/calculate-goals", {
+      const response = await fetch("https://food-recommendation-using-ml.onrender.com/api/calculate-goals", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

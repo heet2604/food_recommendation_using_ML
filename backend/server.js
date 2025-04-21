@@ -24,12 +24,23 @@ const uploads = multer({dest : "uploads/"})
 const port = 5000;
 app.use(express.json());
 
-app.use(
-  cors({
-    origin: "http://localhost:3000", // Allow requests from your frontend
-    credentials: true, // Allow cookies/sessions with requests
-  })
-);
+const whitelist = [
+  'http://localhost:3000',
+  'https://food-recommendation-using-ml.vercel.app'
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  credentials: true
+}));
+
 app.use(express.urlencoded({ extended: true }));
 
 const JWT_SECRET = process.env.JWT_SECRET;
