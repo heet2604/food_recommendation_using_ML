@@ -844,7 +844,7 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
     const formData = new FormData();
     formData.append("file", fs.createReadStream(filePath));
 
-    const ocrResponse = await axios.post("http://127.0.0.1:5001/ocr", formData, {
+    const ocrResponse = await axios.post("https://food-recommendation-using-ml-1.onrender.com/ocr", formData, {
       headers: { ...formData.getHeaders() },
     });
 

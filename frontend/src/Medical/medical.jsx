@@ -31,7 +31,7 @@ export default function Medical() {
   
     try {
       const response = await axios.post(
-        "https://your-flask-server.onrender.com/api/medical",
+        "https://food-recommendation-using-ml-1.onrender.com/api/medical",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -55,7 +55,7 @@ export default function Medical() {
       });
     }
   };
-  
+
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
       {/* Navbar */}
