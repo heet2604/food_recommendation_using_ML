@@ -6,3 +6,4 @@ paddlepaddle
 paddleocr
 flask-cors
 waitress
+requests

@@ -22,48 +22,40 @@ export default function Medical() {
 
   const handleUpload = async () => {
     if (!file) {
-      toast({
-        title: "Error",
-        description: "Please select a file",
-        status: "error"
-      });
+      toast({ title: "Error", description: "Please select a file", status: "error" });
       return;
     }
   
     const formData = new FormData();
     formData.append("file", file);
-    setLoading(true);
   
     try {
-      const { data } = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/medical", 
-        formData, 
+      const response = await axios.post(
+        "https://your-flask-server.onrender.com/api/medical",
+        formData,
         {
-          headers: { 
-            "Content-Type": "multipart/form-data",
-            "Accept": "application/json"
-          },
+          headers: { "Content-Type": "multipart/form-data" },
+          timeout: 30000
         }
       );
   
-      setExtractedText(data.extractedText || data.text);
+      setExtractedText(response.data.text);
+      setSimplifiedText(response.data.simplified);
+      
       toast({
         title: "Success",
-        description: "Medical document processed successfully!",
+        description: "Document processed successfully!",
         status: "success"
       });
     } catch (error) {
-      console.error("❌ Upload failed:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Failed to process the file",
+        description: error.response?.data?.error || "Processing failed",
         status: "error"
       });
-    } finally {
-      setLoading(false);
     }
   };
-
+  
   return (
     <div className="bg-black text-white min-h-screen flex flex-col">
       {/* Navbar */}

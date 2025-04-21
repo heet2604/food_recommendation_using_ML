@@ -5,7 +5,9 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import gc
 from waitress import serve
-import re  # For medical text processing
+import re
+import requests  # For synchronous API calls to Together AI
+import json
 
 # Configuration
 app = Flask(__name__)
@@ -33,16 +35,40 @@ def allowed_file(filename):
 
 def process_medical_text(text):
     """Helper function to extract medical-specific information"""
-    # Example: Extract medication names (simple regex pattern)
     medications = re.findall(r'\b[A-Z][a-z]+\b(?:\s+\b[A-Z][a-z]+\b)*', text)
-    # Extract potential dosages
     dosages = re.findall(r'\d+\s*mg|\d+\s*ml|\d+\s*times\s*a\s*day', text)
     
     return {
-        'medications': list(set(medications)),  # Remove duplicates
+        'medications': list(set(medications)),
         'dosages': list(set(dosages)),
         'fullText': text
     }
+
+def simplify_medical_text(text):
+    """Synchronous function to simplify text using Together AI API"""
+    url = "https://api.together.xyz/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {os.getenv('TOGETHER_API_KEY')}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "meta-llama/Llama-3-70b-chat-hf",
+        "messages": [{
+            "role": "user",
+            "content": f"Simplify this medical report into easy-to-understand language:\n\n{text}"
+        }],
+        "temperature": 0.7,
+        "max_tokens": 1000
+    }
+
+    try:
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()
+        data = response.json()
+        return data['choices'][0]['message']['content']
+    except requests.exceptions.RequestException as e:
+        app.logger.error(f"AI API error: {str(e)}")
+        return "Could not simplify text"  # Fallback response
 
 @app.route("/ocr", methods=["POST"])
 def process_image():
@@ -90,16 +116,23 @@ def process_medical():
         file_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(file_path)
 
+        # Perform OCR
         results = ocr.ocr(file_path, cls=True)
         extracted_text = "\n".join([line[1][0] for res in results for line in res])
+        
+        # Process medical data
         medical_data = process_medical_text(extracted_text)
+        
+        # Simplify text (synchronous call)
+        simplified_text = simplify_medical_text(extracted_text)
 
         os.remove(file_path)
         gc.collect()
 
         return jsonify({
             "extractedText": extracted_text,
-            "medicalData": medical_data
+            "medicalData": medical_data,
+            "simplifiedText": simplified_text
         })
     
     except Exception as e:
