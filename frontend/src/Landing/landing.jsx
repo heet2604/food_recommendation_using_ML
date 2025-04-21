@@ -9,8 +9,8 @@ function Landing() {
 
   useEffect(() => {
     setIsLoaded(true);
-    const apiUrl = 'https://food-recommendation-using-ml.vercel.app';
-    axios.get(apiUrl)
+
+    axios.get('http://localhost:3000')
       .then(response => {
         console.log('Data fetched from backend:', response.data);
       })
