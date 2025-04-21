@@ -5,3 +5,4 @@ opencv-python
 paddlepaddle
 paddleocr
 flask-cors
+waitress
