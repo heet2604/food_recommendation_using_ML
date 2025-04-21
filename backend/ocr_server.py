@@ -11,7 +11,10 @@ import json
 
 # Configuration
 app = Flask(__name__)
-CORS(app, origins=["https://food-recommendation-using-ml.vercel.app", "*"], supports_credentials=True)
+CORS(app, resources={
+    r"/ocr": {"origins": "*"},
+    r"/api/*": {"origins": "*"}
+})
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp'}
