@@ -35,8 +35,9 @@ export default function Medical() {
     setLoading(true);
   
     try {
+      // Make sure this URL matches exactly with your backend service URL
       const { data } = await axios.post(
-        "https://food-recommendation-using-ml.onrender.com/api/medical", 
+        "https://food-recommendation-using-ml-1.onrender.com/api/medical", 
         formData, 
         {
           headers: { 
@@ -46,7 +47,8 @@ export default function Medical() {
         }
       );
   
-      setExtractedText(data.extractedText || data.text);
+      // Updated to match the response format from the Flask backend
+      setExtractedText(data.simplifiedText || data.extractedText || "");
       toast({
         title: "Success",
         description: "Medical document processed successfully!",
