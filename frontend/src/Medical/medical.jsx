@@ -29,29 +29,39 @@ export default function Medical() {
       });
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("file", file);
     setLoading(true);
-
+  
     try {
-      const { data } = await axios.post("https://food-recommendation-using-ml-1.onrender.com/api/medical", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setExtractedText(data.extractedText);
+      const { data } = await axios.post(
+        "https://food-recommendation-using-ml-1.onrender.com/api/medical", 
+        formData, 
+        {
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "Accept": "application/json"
+          },
+        }
+      );
+  
+      setExtractedText(data.extractedText || data.text);
       toast({
         title: "Success",
         description: "Medical document processed successfully!",
+        status: "success"
       });
     } catch (error) {
-      console.error("❌ Upload failed:", error.response ? error.response.data : error.message);
+      console.error("❌ Upload failed:", error);
       toast({
         title: "Error",
-        description: "Failed to process the file. Check console for details."
+        description: error.response?.data?.error || "Failed to process the file",
+        status: "error"
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
