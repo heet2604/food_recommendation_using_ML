@@ -22,37 +22,45 @@ export default function Medical() {
 
   const handleUpload = async () => {
     if (!file) {
-      toast({ title: "Error", description: "Please select a file", status: "error" });
+      toast({
+        title: "Error",
+        description: "Please select a file",
+        status: "error"
+      });
       return;
     }
   
     const formData = new FormData();
     formData.append("file", file);
+    setLoading(true);
   
     try {
-      const response = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/medical",
-        formData,
+      const { data } = await axios.post(
+        "https://food-recommendation-using-ml-1.onrender.com/api/medical", 
+        formData, 
         {
-          headers: { "Content-Type": "multipart/form-data" },
-          timeout: 30000
+          headers: { 
+            "Content-Type": "multipart/form-data",
+            "Accept": "application/json"
+          },
         }
       );
   
-      setExtractedText(response.data.text);
-      setSimplifiedText(response.data.simplified);
-      
+      setExtractedText(data.extractedText || data.text);
       toast({
         title: "Success",
-        description: "Document processed successfully!",
+        description: "Medical document processed successfully!",
         status: "success"
       });
     } catch (error) {
+      console.error("❌ Upload failed:", error);
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Processing failed",
+        description: error.response?.data?.error || "Failed to process the file",
         status: "error"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
