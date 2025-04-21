@@ -840,25 +840,30 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
 
     console.log("📤 Sending image to OCR server:", filePath);
 
-    // Send image to OCR server - make sure this URL matches your Flask backend
+    // Send image to OCR server
     const formData = new FormData();
     formData.append("file", fs.createReadStream(filePath));
 
-    // Updated to call the /api/medical endpoint directly on the Flask server
-    const response = await axios.post("https://food-recommendation-using-ml-1.onrender.com/api/medical", formData, {
+    const ocrResponse = await axios.post("http://127.0.0.1:5001/ocr", formData, {
       headers: { ...formData.getHeaders() },
-      // Add a longer timeout since this endpoint does OCR + text processing
-      timeout: 60000
     });
+
+    let extractedText = ocrResponse.data.text;
+    console.log("✅ OCR Processed successfully:", extractedText);
 
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
-    // Return the structured data directly from the Flask backend
-    res.json(response.data);
+    // 🛠 Step 2: Send extracted text to OpenAI (or Together AI)
+    const simplifiedText = await simplifyText(extractedText);
+    
+    // Remove asterisks and format each line
+    const formattedText = simplifiedText.replace(/\*/g, "").split("\n").map(line => line.trim()).join("\n");
+
+    res.json({ extractedText: formattedText });
     
   } catch (error) {
     console.error("❌ Error in processing image:", error.message);
-    res.status(500).json({ error: "Failed to process the image. " + (error.response?.data?.error || error.message) });
+    res.status(500).json({ error: "Failed to process the image." });
   }
 });
 

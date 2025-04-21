@@ -29,41 +29,29 @@ export default function Medical() {
       });
       return;
     }
-  
+
     const formData = new FormData();
     formData.append("file", file);
     setLoading(true);
-  
+
     try {
-      // Make sure this URL matches exactly with your backend service URL
-      const { data } = await axios.post(
-        "https://food-recommendation-using-ml-1.onrender.com/api/medical", 
-        formData, 
-        {
-          headers: { 
-            "Content-Type": "multipart/form-data",
-            "Accept": "application/json"
-          },
-        }
-      );
-  
-      // Updated to match the response format from the Flask backend
-      setExtractedText(data.simplifiedText || data.extractedText || "");
+      const { data } = await axios.post("https://food-recommendation-using-ml-1.onrender.com/api/medical", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setExtractedText(data.extractedText);
       toast({
         title: "Success",
         description: "Medical document processed successfully!",
-        status: "success"
       });
     } catch (error) {
-      console.error("❌ Upload failed:", error);
+      console.error("❌ Upload failed:", error.response ? error.response.data : error.message);
       toast({
         title: "Error",
-        description: error.response?.data?.error || "Failed to process the file",
-        status: "error"
+        description: "Failed to process the file. Check console for details."
       });
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   return (
