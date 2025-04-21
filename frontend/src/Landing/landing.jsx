@@ -9,7 +9,7 @@ function Landing() {
 
   useEffect(() => {
     setIsLoaded(true);
-    const apiUrl = 'https://your-render-backend-service.onrender.com';
+    const apiUrl = 'https://food-recommendation-using-ml.onrender.com';
     axios.get(apiUrl)
       .then(response => {
         console.log('Data fetched from backend:', response.data);
