@@ -2,3 +2,6 @@ flask
 pytesseract
 pillow
 opencv-python
+paddlepaddle
+paddleocr
+flask-cors
