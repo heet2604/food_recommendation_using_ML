@@ -65,7 +65,7 @@ if __name__ == "__main__":
     serve(
         app,
         host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5001)),
+        port=int(os.environ.get("PORT", 10000)),
         threads=2,  # Reduce thread count for memory
         channel_timeout=120  # Longer timeout for OCR processing
     )
