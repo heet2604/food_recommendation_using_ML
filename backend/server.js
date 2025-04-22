@@ -18,6 +18,9 @@ const fs = require("fs")
 const path = require('path')
 const FormData = require("form-data");
 const {spawn} = require("child_process")
+const csv = require('csv-parser');
+// const { distance } = require('ml-distance');
+// const math = require('mathjs');
 const uploads = multer({dest : "uploads/"})
 
 
@@ -708,125 +711,125 @@ app.get("/api/vitals", authMiddleware, async (req, res) => {
   }
 });
 
-app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized request" });
-    }
+// app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
+//   try {
+//     const userId = req.user?.userId;
+//     if (!userId) {
+//       return res.status(401).json({ success: false, message: "Unauthorized request" });
+//     }
 
-    console.log("Generating meal plan for user:", userId);
+//     console.log("Generating meal plan for user:", userId);
 
-    // Fetch user details
-    const userDetails = await UserDetails.findOne({ userId });
-    if (!userDetails) {
-      return res.status(404).json({ success: false, message: "User details not found" });
-    }
+//     // Fetch user details
+//     const userDetails = await UserDetails.findOne({ userId });
+//     if (!userDetails) {
+//       return res.status(404).json({ success: false, message: "User details not found" });
+//     }
 
-    // Fetch daily intake for today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+//     // Fetch daily intake for today
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0);
+//     const tomorrow = new Date(today);
+//     tomorrow.setDate(today.getDate() + 1);
 
-    const dailyIntake = await DailyIntake.findOne({
-      userId,
-      date: { $gte: today, $lt: tomorrow },
-    });
+//     const dailyIntake = await DailyIntake.findOne({
+//       userId,
+//       date: { $gte: today, $lt: tomorrow },
+//     });
 
-    // Fetch past food intake (last 7 days)
-    const pastFoodIntake = await Food.find({
-      userId,
-      createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-    }).sort({ createdAt: -1 });
+//     // Fetch past food intake (last 7 days)
+//     const pastFoodIntake = await Food.find({
+//       userId,
+//       createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+//     }).sort({ createdAt: -1 });
 
-    console.log(pastFoodIntake);
+//     console.log(pastFoodIntake);
 
-    // Fetch latest vitals
-    const latestVitals = await Vitals.findOne({ userId }).sort({ timestamp: -1 });
+//     // Fetch latest vitals
+//     const latestVitals = await Vitals.findOne({ userId }).sort({ timestamp: -1 });
 
-    // Prepare context for the LLM
-    const context = {
-      height: userDetails.height || "unknown",
-      weight: userDetails.weight || "unknown",
-      age: userDetails.age || "unknown",
-      gender: userDetails.gender || "unknown",
-      activityLevel: userDetails.activityLevel || "unknown",
-      weightGoal: userDetails.weightGoal || "unknown",
-      bmi: userDetails.bmi || "unknown",
-      maintenanceCalories: userDetails.maintenanceCalories || "unknown",
-      dailyMacros: userDetails.dailyMacros || {},
-      currentIntake: {
-        calories: dailyIntake?.calories || 0,
-        protein: dailyIntake?.nutrients?.protein || 0,
-        carbs: dailyIntake?.nutrients?.carbs || 0,
-        fats: dailyIntake?.nutrients?.fats || 0,
-        fiber: dailyIntake?.nutrients?.fiber || 0,
-      },
-      pastFoodIntake: pastFoodIntake?.map((food) => food.food_name) || [],
-      latestVitals: {
-        sugarReading: latestVitals?.sugarReading || null,
-        weightReading: latestVitals?.weightReading || null,
-      },
-    };
+//     // Prepare context for the LLM
+//     const context = {
+//       height: userDetails.height || "unknown",
+//       weight: userDetails.weight || "unknown",
+//       age: userDetails.age || "unknown",
+//       gender: userDetails.gender || "unknown",
+//       activityLevel: userDetails.activityLevel || "unknown",
+//       weightGoal: userDetails.weightGoal || "unknown",
+//       bmi: userDetails.bmi || "unknown",
+//       maintenanceCalories: userDetails.maintenanceCalories || "unknown",
+//       dailyMacros: userDetails.dailyMacros || {},
+//       currentIntake: {
+//         calories: dailyIntake?.calories || 0,
+//         protein: dailyIntake?.nutrients?.protein || 0,
+//         carbs: dailyIntake?.nutrients?.carbs || 0,
+//         fats: dailyIntake?.nutrients?.fats || 0,
+//         fiber: dailyIntake?.nutrients?.fiber || 0,
+//       },
+//       pastFoodIntake: pastFoodIntake?.map((food) => food.food_name) || [],
+//       latestVitals: {
+//         sugarReading: latestVitals?.sugarReading || null,
+//         weightReading: latestVitals?.weightReading || null,
+//       },
+//     };
 
-    console.log("Context for LLM:", context);
-    const currentTime = new Date().toLocaleTimeString();
+//     console.log("Context for LLM:", context);
+//     const currentTime = new Date().toLocaleTimeString();
 
-    // Generate meal plan using Together AI API
-    const aiResponse = await axios.post(
-      "https://api.together.xyz/v1/chat/completions",
-      {
-        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should be strictly based on user's existing habits, which are given in the context. Additionally, consider the current time of the day and provide 3 meal options for the user to choose from. The response must be in plain text format (no markdown, no **, no ```). Each meal option should include the meal name, calories per 100g, and macros (protein, carbs, fats, fiber). Ensure the meal options are suitable for a diabetic person (low glycemic index), compatible with Indian cuisine, and strictly according to the user's past eating habits.",
-          },
-          {
-            role: "user",
-            content: `Generate a meal plan for a user with the following details: ${JSON.stringify(
-              context
-            )}. The current time is ${currentTime}. Provide 3 meal options based on the type of the meal.`,
-          },
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+//     // Generate meal plan using Together AI API
+//     const aiResponse = await axios.post(
+//       "https://api.together.xyz/v1/chat/completions",
+//       {
+//         model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+//         messages: [
+//           {
+//             role: "system",
+//             content:
+//               "You are a nutrition expert. Generate a personalized meal plan based on the user's context. The meal plan should be strictly based on user's existing habits, which are given in the context. Additionally, consider the current time of the day and provide 3 meal options for the user to choose from. The response must be in plain text format (no markdown, no **, no ```). Each meal option should include the meal name, calories per 100g, and macros (protein, carbs, fats, fiber). Ensure the meal options are suitable for a diabetic person (low glycemic index), compatible with Indian cuisine, and strictly according to the user's past eating habits.",
+//           },
+//           {
+//             role: "user",
+//             content: `Generate a meal plan for a user with the following details: ${JSON.stringify(
+//               context
+//             )}. The current time is ${currentTime}. Provide 3 meal options based on the type of the meal.`,
+//           },
+//         ],
+//         max_tokens: 500,
+//         temperature: 0.7,
+//       },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
 
-    // Validate AI response
-    if (
-      !aiResponse.data.choices ||
-      !aiResponse.data.choices[0] ||
-      !aiResponse.data.choices[0].message ||
-      !aiResponse.data.choices[0].message.content
-    ) {
-      throw new Error("Invalid response from Together AI");
-    }
+//     // Validate AI response
+//     if (
+//       !aiResponse.data.choices ||
+//       !aiResponse.data.choices[0] ||
+//       !aiResponse.data.choices[0].message ||
+//       !aiResponse.data.choices[0].message.content
+//     ) {
+//       throw new Error("Invalid response from Together AI");
+//     }
 
-    // Extract the meal plan response
-    let mealPlan = aiResponse.data.choices[0].message.content;
+//     // Extract the meal plan response
+//     let mealPlan = aiResponse.data.choices[0].message.content;
 
-    // Remove markdown formatting (e.g., **, ```) if present
-    mealPlan = mealPlan.replace(/\*\*/g, "").replace(/```/g, "").trim();
+//     // Remove markdown formatting (e.g., **, ```) if present
+//     mealPlan = mealPlan.replace(/\*\*/g, "").replace(/```/g, "").trim();
 
-    console.log("Generated Meal Plan:", mealPlan);
+//     console.log("Generated Meal Plan:", mealPlan);
 
-    // Return the cleaned meal plan
-    res.status(200).json({ success: true, mealPlan });
-  } catch (error) {
-    console.error("Error generating meal plan:", error.message || error);
-    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
-  }
-});
+//     // Return the cleaned meal plan
+//     res.status(200).json({ success: true, mealPlan });
+//   } catch (error) {
+//     console.error("Error generating meal plan:", error.message || error);
+//     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+//   }
+// });
 
 
 const upload = multer({ dest: "uploads/" });
@@ -886,6 +889,31 @@ async function simplifyText(text) {
     return "Failed to simplify the text.";
   }
 }
+
+
+// Add this route
+app.post("/api/generate-meal-plan", async (req, res) => {
+  try {
+    const { food } = req.body;
+    if (!food) {
+      return res.status(400).json({ error: "Food name is required" });
+    }
+
+    // Replace with your Flask server's URL if deployed elsewhere
+    const flaskUrl = process.env.FLASK_API_URL || "http://127.0.0.1:5001/recommend";
+
+    // Call the Flask microservice
+    const response = await axios.post(flaskUrl, { food });
+
+    // Forward the response to the frontend
+    res.json(response.data);
+  } catch (error) {
+    console.error("Flask recommendation error:", error.message || error);
+    res.status(500).json({ error: "Failed to get recommendations" });
+  }
+});
+
+
 
 // integrating the yolov8 training and the llm model
 app.post("/upload",upload.single("file"),async (req,res)=>{

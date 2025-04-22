@@ -7,29 +7,33 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeaf } from "@fortawesome/free-solid-svg-icons";
 
 const Recommendations = () => {
-  const [mealPlan, setMealPlan] = useState("");
+  const [foodItem, setFoodItem] = useState("");
+  const [alternatives, setAlternatives] = useState([]); // <-- should be an array!
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const generateMealPlan = async () => {
-    setIsLoading(true);
-    
-    // Simulate API call (replace with actual API call when backend is ready)
+  const generateAlternatives = async () => {
     try {
-      
       const response = await axios.post(
-        "https://localhost:5000/api/generate-meal-plan",
-        {},
+        "http://localhost:5000/api/generate-meal-plan",
+        { food  : foodItem }, // Match Flask's expected parameter name
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")} `},
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")?.trim()}` 
+          }
         }
       );
-      setMealPlan(response.data.mealPlan);
-    
+      
+      // Handle response format
+      setAlternatives(
+        response.data.recommended_suggestions || 
+        response.data.alternative_suggestions || 
+        []
+      );
     } catch (error) {
-      console.error("Error generating meal plan:", error);
-      setIsLoading(false);
-      toast.error("Something went wrong");
+      console.error({error:"Something is wrong"})
+      toast.error("Something went wrong")
     }
   };
 
@@ -39,13 +43,12 @@ const Recommendations = () => {
       <nav className="w-full bg-gray-900 px-6 border-b border-green-500/20 shadow-lg shadow-green-500/5 sticky top-0 z-50 mb-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <a href="/home" className="text-xl font-bold flex items-center gap-2 text-white">
-          <FontAwesomeIcon
-                      icon={faLeaf}
-                      className="text-green-400 text-3xl drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
-                    />
-           Nourish
+            <FontAwesomeIcon
+              icon={faLeaf}
+              className="text-green-400 text-3xl drop-shadow-[0_0_10px_rgba(34,197,94,0.8)] animate-pulse"
+            />
+            Nourish
           </a>
-
           <div className="lg:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -63,7 +66,6 @@ const Recommendations = () => {
               )}
             </button>
           </div>
-
           <div className="hidden lg:flex items-center gap-8">
             <a href="/home" className="nav-link flex items-center gap-2 text-gray-400 font-medium">
               <HomeIcon className="w-4 h-4" />
@@ -88,7 +90,6 @@ const Recommendations = () => {
           </div>
         </div>
       </nav>
-
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-green-500/20 shadow-xl fixed w-full z-40">
@@ -116,40 +117,72 @@ const Recommendations = () => {
           </div>
         </div>
       )}
-
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 animate-fadeIn">
           <span className="inline-block px-3 py-1 rounded-full bg-green-400/10 text-green-400 text-xs font-medium tracking-wider mb-4">
-            PERSONALIZED NUTRITION
+            HEALTHIER CHOICES
           </span>
           <h1 className="text-4xl md:text-5xl font-bold text-green-400 mb-3">
-            Meal Planner
+            Find Healthier Alternatives
           </h1>
           <p className="text-gray-400 max-w-xl mx-auto">
-            Generate a personalized meal plan based on your preferences and nutritional needs.
+            Discover nutritious substitutes for your favorite foods and elevate your diet with healthier options.
           </p>
         </div>
-        
-        <div className="flex justify-center mb-12">
+        <div className="flex flex-col items-center justify-center gap-4 mb-12">
+          <div className="w-full max-w-md">
+            <input
+              type="text"
+              value={foodItem}
+              onChange={(e) => setFoodItem(e.target.value)}
+              placeholder="Enter a food item (e.g., pizza, ice cream, french fries)"
+              className="w-full px-6 py-3 bg-black/50 border border-green-400/20 text-green-100 rounded-lg 
+                       focus:outline-none focus:ring-2 focus:ring-green-400/50 focus:border-transparent 
+                       placeholder-gray-500 transition-all duration-300"
+            />
+          </div>
           <button 
-            onClick={generateMealPlan} 
+            onClick={generateAlternatives} 
             disabled={isLoading}
             className="px-6 py-3 bg-black border border-green-400/20 text-green-400 rounded-lg shadow-lg 
                        hover:bg-green-400/10 transition-all duration-300 group relative overflow-hidden"
           >
             <span className="absolute inset-0 bg-green-400/10 w-full transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></span>
             <span className="relative flex items-center">
-              <>Generate Meal Plan</>
+              {isLoading ? "Finding Alternatives..." : "Find Healthier Alternatives"}
             </span>
           </button>
         </div>
-        
         <div className={`bg-black/30 backdrop-blur-md border border-green-400/20 rounded-xl shadow-xl p-6 md:p-8 
-                        transition-all duration-300 ease-out ${mealPlan ? 'opacity-100 transform translate-y-0' : 'opacity-80 transform translate-y-4'}`}>
-          <h2 className="text-green-400 text-xl font-semibold mb-6">Your Meal Plan</h2>
-          
-          {mealPlan ? (
-            <pre className="text-gray-300 font-mono text-sm whitespace-pre-wrap bg-black/50 p-4 rounded-lg">{mealPlan}</pre>
+                        transition-all duration-300 ease-out ${alternatives.length ? 'opacity-100 transform translate-y-0' : 'opacity-80 transform translate-y-4'}`}>
+          <h2 className="text-green-400 text-xl font-semibold mb-6">Healthier Alternatives</h2>
+          {alternatives.length > 0 ? (
+            <div className="space-y-4">
+              {alternatives.map((item, idx) => (
+                <div key={idx} className="p-4 bg-black/50 rounded-lg border border-green-400/20">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-green-400 font-medium text-lg">{item["Food Name"] || item.name}</h3>
+                    <span className="text-sm px-2 py-1 bg-green-400/10 text-green-400 rounded">
+                      {item.recommendation}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-gray-300">
+                    <div>
+                      <p className="text-sm">Calories</p>
+                      <p className="font-medium">{item.Calories || item.calories}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm">Protein</p>
+                      <p className="font-medium">{item.Protein || item.protein}g</p>
+                    </div>
+                    <div>
+                      <p className="text-sm">Carbs</p>
+                      <p className="font-medium">{item.Carbs || item.carbs}g</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-12">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-400/5 mb-4">
@@ -158,17 +191,16 @@ const Recommendations = () => {
                 </svg>
               </div>
               <p className="text-gray-400">
-                Click the button above to generate your personalized meal plan
+                Enter a food item above and click the button to discover healthier alternatives
               </p>
             </div>
           )}
-          
-          {mealPlan && (
+          {alternatives.length > 0 && (
             <div className="mt-6 pt-6 border-t border-green-400/10">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-400">Need adjustments?</span>
+                <span className="text-sm text-gray-400">Want different options?</span>
                 <button
-                  onClick={generateMealPlan} 
+                  onClick={generateAlternatives}
                   className="px-4 py-2 border border-green-400/20 rounded-lg text-green-400 text-sm
                            hover:bg-green-400/10 transition-all"
                 >
@@ -178,10 +210,7 @@ const Recommendations = () => {
             </div>
           )}
         </div>
-        
-        
       </div>
-      
       <ToastContainer position="bottom-right" />
     </div>
   );
