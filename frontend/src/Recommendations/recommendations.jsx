@@ -8,15 +8,16 @@ import { faLeaf } from "@fortawesome/free-solid-svg-icons";
 
 const Recommendations = () => {
   const [foodItem, setFoodItem] = useState("");
-  const [alternatives, setAlternatives] = useState([]); // <-- should be an array!
+  const [alternatives, setAlternatives] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const generateAlternatives = async () => {
     try {
+      setIsLoading(true);
       const response = await axios.post(
         "http://localhost:5000/api/generate-meal-plan",
-        { food  : foodItem }, // Match Flask's expected parameter name
+        { food: foodItem },
         {
           headers: { 
             "Content-Type": "application/json",
@@ -24,16 +25,12 @@ const Recommendations = () => {
           }
         }
       );
-      
-      // Handle response format
-      setAlternatives(
-        response.data.recommended_suggestions || 
-        response.data.alternative_suggestions || 
-        []
-      );
+      setAlternatives(response.data.recommendations || []);
     } catch (error) {
       console.error({error:"Something is wrong"})
       toast.error("Something went wrong")
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -169,15 +166,15 @@ const Recommendations = () => {
                   <div className="grid grid-cols-3 gap-4 text-gray-300">
                     <div>
                       <p className="text-sm">Calories</p>
-                      <p className="font-medium">{item.Calories || item.calories}</p>
+                      <p className="font-medium">{item.nutrition?.calories ?? "-"}</p>
                     </div>
                     <div>
                       <p className="text-sm">Protein</p>
-                      <p className="font-medium">{item.Protein || item.protein}g</p>
+                      <p className="font-medium">{item.nutrition?.protein ?? "-"}g</p>
                     </div>
                     <div>
                       <p className="text-sm">Carbs</p>
-                      <p className="font-medium">{item.Carbs || item.carbs}g</p>
+                      <p className="font-medium">{item.nutrition?.carbs ?? "-"}g</p>
                     </div>
                   </div>
                 </div>
