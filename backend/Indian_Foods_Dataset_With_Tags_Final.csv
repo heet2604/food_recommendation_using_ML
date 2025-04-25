@@ -24,7 +24,7 @@ Biryani,Lunch,220,30,8,6,2,60,18,65,25,150,400,30,1,0,1,20,Vegetarian,minimally 
 Dal Tadka,Dinner,120,15,5,7,5,40,6,50,40,200,300,50,1.5,0,2,80,Vegan,minimally processed,ideal_diabetic_food,boiled,regular_portion
 Roti,Breakfast,297,46,6,10,7,62,28.5,70,50,150,200,20,2.5,0,0,25,Vegan,minimally processed,suitable_for_controlled_diabetes,roasted,moderate_portion
 Bhindi Masala,Dinner,90,10,4,3,4,20,2,30,40,250,150,80,1.5,0,15,60,Vegan,minimally processed,ideal_diabetic_food,stir_fried,regular_portion
-Aloo Gobi,Dinner,120,15,5,3,3,45,6.8,40,20,250,300,30,1,0,20,40,Vegan,minimally processed,suitable_for_controlled_diabetes,stir_fried,moderate_portion
+aloo gobhi,Dinner,120,15,5,3,3,45,6.8,40,20,250,300,30,1,0,20,40,Vegan,minimally processed,suitable_for_controlled_diabetes,stir_fried,moderate_portion
 Matar Paneer,anytime,180,10,10,10,3,35,3.5,50,30,200,400,150,1.5,0.1,5,50,Vegetarian,minimally processed,suitable_for_controlled_diabetes,stir_fried,regular_portion
 Chicken Curry,Dinner,220,3,15,20,1,0,0,50,25,250,400,20,1.5,0.5,1,10,Non-Vegetarian,Minimally Processed,suitable_for_controlled_diabetes,boiled,moderate_portion
 Fish Curry,Dinner,135,4.5,9.5,10.5,1.5,35,1.6,45,20,200,350,30,1,2,8,15,Non-Vegetarian,minimally processed,ideal_diabetic_food,boiled,moderate_portion

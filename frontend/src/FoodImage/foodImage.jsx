@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import { Upload, ArrowRight, FileImage, Loader2, CheckCircle } from "lucide-react";
+import { Upload, FileImage, Loader2, CheckCircle, PlusCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLeaf } from "@fortawesome/free-solid-svg-icons";
@@ -12,9 +12,9 @@ const FoodImage = () => {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [detectedFood, setDetectedFood] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isFetchingMacros, setIsFetchingMacros] = useState(false);
   const [macros, setMacros] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -47,86 +47,70 @@ const FoodImage = () => {
   };
 
   const analyzeImage = async () => {
-    if (!selectedImage) {
-      toast.warning("Please select an image first");
-      return;
-    }
-
+    if (!selectedImage) return;
+    
     setIsAnalyzing(true);
-
     try {
-      // Create form data for image upload
       const formData = new FormData();
-      formData.append("image", selectedImage);
-
-      // Send image to backend for analysis
-      const response = await axios.post(
-        "https://food-recommendation-using-ml.onrender.com/api/detect-food",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+      formData.append('file', selectedImage);
+  
+      const response = await axios.post('http://localhost:5000/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
         }
-      );
-
-      // Set detected food from response
-      setDetectedFood(response.data.foodName);
-      toast.success("Food detected successfully!");
+      });
+  
+      setDetectedFood(response.data.detected_food);
+      setMacros(response.data.macros);
+      toast.success('Analysis complete!');
+      
     } catch (error) {
-      console.error("Error analyzing image:", error);
-      toast.error("Failed to analyze image. Please try again.");
+      toast.error('Analysis failed');
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const fetchMacros = async () => {
-    if (!detectedFood) {
-      toast.warning("Please analyze the image first");
+  // Helper function to ensure values are handled correctly
+  const updatedValues = (value) => {
+    return value !== undefined ? value : 0;
+  };
+
+  const addToDashboard = async () => {
+    if (!macros) {
+      toast.warning("Please analyze an image first");
       return;
     }
 
-    setIsFetchingMacros(true);
-
     try {
-      // Request nutritional info from LLM service
-      const response = await axios.post(
-        "https://food-recommendation-using-ml.onrender.com/api/get-food-macros",
-        { foodName: detectedFood },
+      setIsLoading(true);
+      const token = localStorage.getItem("token");
+      
+      const nutritionalData = {
+        energy_kcal: updatedValues(macros.calories),
+        protein_g: updatedValues(macros.protein),
+        carb_g: updatedValues(macros.carbs),
+        fat_g: updatedValues(macros.fat),
+        fibre_g: updatedValues(macros.fiber || 0) // Adding fiber with fallback
+      };
+
+      await axios.post(
+        "http://localhost:5000/api/add-food-to-dashboard",
+        nutritionalData,
         {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
-      // Save macros data
-      setMacros(response.data.macros);
-      toast.success("Nutritional information retrieved!");
+      toast.success("Food added to dashboard successfully!");
+      navigate("/home");
     } catch (error) {
-      console.error("Error fetching macros:", error);
-      toast.error("Failed to fetch nutritional information. Please try again.");
+      console.error("Error sending data to dashboard:", error);
+      toast.error("Failed to add food to dashboard. Please try again.");
     } finally {
-      setIsFetchingMacros(false);
+      setIsLoading(false);
     }
-  };
-
-  const continueToRecommendations = () => {
-    if (!macros) {
-      toast.warning("Please get the nutritional information first");
-      return;
-    }
-
-    // Save macros to localStorage for access on recommendations page
-    localStorage.setItem("foodMacros", JSON.stringify({
-      foodName: detectedFood,
-      macros: macros
-    }));
-
-    // Navigate to recommendations page
-    navigate("/recommendations");
   };
 
   const triggerFileInput = () => {
@@ -165,7 +149,6 @@ const FoodImage = () => {
           </div>
 
           <div className="hidden lg:flex items-center gap-8">
-            {/* Navigation Links */}
             <a href="/home" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
               Home
             </a>
@@ -175,8 +158,8 @@ const FoodImage = () => {
             <a href="/food_details" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
               Food Details
             </a>
-            <a href="/recommendations" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
-              Recommendations
+            <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+              Dashboard
             </a>
           </div>
         </div>
@@ -195,8 +178,8 @@ const FoodImage = () => {
             <a href="/food_details" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
               Food Details
             </a>
-            <a href="/recommendations" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
-              Recommendations
+            <a href="/dashboard" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+              Dashboard
             </a>
           </div>
         </div>
@@ -204,9 +187,6 @@ const FoodImage = () => {
 
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 animate-fadeIn">
-          {/* <span className="inline-block px-3 py-1 rounded-full bg-green-400/10 text-green-400 text-xs font-medium tracking-wider mb-4">
-            FOOD ANALYSIS
-          </span> */}
           <h1 className="text-4xl md:text-5xl font-bold text-green-400 mb-3">
             Food Image Analyzer
           </h1>
@@ -272,8 +252,8 @@ const FoodImage = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center mb-12">
+        {/* Action Button */}
+        <div className="flex justify-center mb-12">
           <button
             onClick={analyzeImage}
             disabled={!selectedImage || isAnalyzing}
@@ -292,30 +272,6 @@ const FoodImage = () => {
               <>
                 <Upload className="w-5 h-5" />
                 Analyze Image
-              </>
-            )}
-          </button>
-
-          <button
-            onClick={fetchMacros}
-            disabled={!detectedFood || isFetchingMacros}
-            className={`px-6 py-3 rounded-lg shadow-lg transition-all duration-300 flex items-center justify-center gap-2 ${
-              !detectedFood 
-                ? "bg-gray-800 text-gray-500 cursor-not-allowed" 
-                : "bg-black border border-green-400/20 text-green-400 hover:bg-green-400/10"
-            }`}
-          >
-            {isFetchingMacros ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Fetching data...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                Get Nutrition Info
               </>
             )}
           </button>
@@ -359,7 +315,7 @@ const FoodImage = () => {
                 </div>
               ) : (
                 <p className="text-gray-400 text-center py-4">
-                  Click "Get Nutrition Info" to fetch macronutrient data
+                  Nutritional data will appear here after analysis
                 </p>
               )}
             </div>
@@ -376,16 +332,25 @@ const FoodImage = () => {
             </div>
           )}
 
-          {/* Continue button - only shown when macros are available */}
+          {/* Add to Dashboard button */}
           {macros && (
             <div className="mt-6 pt-6 border-t border-green-400/10">
               <button
-                onClick={continueToRecommendations}
-                className="w-full py-3 bg-green-500 text-black font-medium rounded-lg flex items-center justify-center gap-2 
-                           hover:bg-green-400 transition-colors shadow-lg shadow-green-500/20"
+                onClick={addToDashboard}
+                disabled={isLoading}
+                className="w-full py-3 bg-green-500 text-black font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-green-400 transition-colors shadow-lg shadow-green-500/20"
               >
-                Continue to Recommendations
-                <ArrowRight className="w-5 h-5" />
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Adding to Dashboard...
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="w-5 h-5" />
+                    Add to Dashboard
+                  </>
+                )}
               </button>
             </div>
           )}
