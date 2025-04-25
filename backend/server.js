@@ -17,11 +17,11 @@ const multer = require("multer")
 const fs = require("fs")
 const path = require('path')
 const FormData = require("form-data");
-const {spawn} = require("child_process")
+const { spawn } = require("child_process")
 const csv = require('csv-parser');
 // const { distance } = require('ml-distance');
 // const math = require('mathjs');
-const uploads = multer({dest : "uploads/"})
+const uploads = multer({ dest: "uploads/" })
 
 
 const port = 5000;
@@ -858,12 +858,12 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
 
     // 🛠 Step 2: Send extracted text to OpenAI (or Together AI)
     const simplifiedText = await simplifyText(extractedText);
-    
+
     // Remove asterisks and format each line
     const formattedText = simplifiedText.replace(/\*/g, "").split("\n").map(line => line.trim()).join("\n");
 
     res.json({ extractedText: formattedText });
-    
+
   } catch (error) {
     console.error("❌ Error in processing image:", error.message);
     res.status(500).json({ error: "Failed to process the image." });
@@ -915,62 +915,142 @@ app.post("/api/generate-meal-plan", async (req, res) => {
 
 
 
-// integrating the yolov8 training and the llm model
-app.post("/upload",upload.single("file"),async (req,res)=>{
-  const file = req.file;       //file is saved temp. and can be accesed
+app.post("/upload", upload.single("file"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
 
-  //convert image to base64
-  const imageBuffer = fs.readFileSync(file.path);
-  const base64image = imageBuffer.toString("base64");
+  const filePath = req.file.path;
+  try {
+    const flaskFormData = new FormData();
+    flaskFormData.append("file", fs.createReadStream(filePath), {
+      filename: req.file.originalname,
+      contentType: req.file.mimetype
+    });
 
-  //call python code
-  const py = spawn("python3",["detect.py"]);
-  py.stdin.write(base64image)
-  py.stdin.end()
+    // 1. Get detection from Flask
+    const detectionResponse = await axios.post(
+      "http://127.0.0.1:5001/detect-food",
+      flaskFormData,
+      {
+        headers: flaskFormData.getHeaders(),
+        timeout: 15000 // 15 seconds timeout
+      }
+    );
 
-  let detectedLabel = "";
-  py.stdout.on("data",(data)=>{
-    detectedLabel+=data.toString()
-  })
-
-  py.on("close",async ()=>{
-    const prompt = `Provide nutritional information for "${detectedLabel.trim()}" including :
-    -Calories(kcal)
-    -Protein(g)
-    -Carbohydrates(g)
-    -Fats(g)
-    -Fiber(g)
-    -Glycemic Index
-    Respond is JSON format with keys : food_name,calories,protein,fat,fiber,glycemic_index.
-    `;
-
-    try{
-      const llmRes = await axios.post("https://api/together.xyz/v1/chat/completions",
-        {
-          model : "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-          messages : [{role:"user",content:prompt}],
-          temperature : 0.5,
-        },
-        {
-          headers : {
-            Authorization : `Bearer ${process.env.TOGETHER_API_KEY}`,
-            "Content-Type" : "application/json",
-          },
-        },
-      );
-      res.json({
-        detected_food : detectedLabel.trim(),
-        macros : llmRes.data.choices[0].message.content,
-      })
+    // Verify response structure
+    if (!detectionResponse.data?.primary_item) {
+      throw new Error("Invalid response from detection service");
     }
-    catch(error){
-      res.status(500).json({error : "LLM error",details : error})
+
+    const detectedFood = detectionResponse.data.primary_item;
+    console.log("✅ Detected food:", detectedFood);
+
+    // 2. Get nutrition data
+    const nutritionResponse = await axios.post(
+      "http://127.0.0.1:5001/food-nutrition",
+      { food_name: detectedFood }
+    );
+
+    // 3. Handle response
+    let macros;
+    if (nutritionResponse.data?.error) {
+      // Dataset lookup failed, use LLM fallback
+      console.log("⚠️ Dataset lookup failed, using LLM fallback");
+      macros = await queryLLM(detectedFood);
+    } else {
+      // Map dataset fields to expected frontend structure
+      macros = {
+        source: "dataset",
+        calories: nutritionResponse.data.calories,
+        protein: nutritionResponse.data.protein,
+        carbs: nutritionResponse.data.carbs,
+        fat: nutritionResponse.data.fat, // CSV uses 'Fats' column
+        fiber: nutritionResponse.data.fiber,
+        glycemic_index: nutritionResponse.data.gi // CSV uses 'GI' column
+      };
     }
-    finally{
-      fs.unlinkSync(file.path)   //cleanup
+
+    res.json({
+      detected_food: detectedFood,
+      macros
+    });
+
+  } catch (error) {
+    console.error("❌ Error:", error.response?.data || error.message);
+    res.status(500).json({
+      error: error.response?.data?.error || "Processing failed"
+    });
+  } finally {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath); // Sync cleanup
     }
-  })
+  }
 });
+
+async function queryLLM(foodName) {
+  const prompt = `Provide nutritional information for "${foodName}" including:
+- Calories (kcal per typical serving)
+- Protein (g)
+- Carbohydrates (g)
+- Fats (g)
+- Fiber (g)
+- Glycemic Index
+
+Format the response as a **valid JSON object** with the following keys:
+
+{
+  "food_name": string,
+  "calories": number,
+  "protein": number,
+  "carbs": number,
+  "fat": number,
+  "fiber": number,
+  "glycemic_index": number
+}`;
+
+  try {
+    const llmResponse = await axios.post(
+      "https://api.together.xyz/v1/chat/completions",
+      {
+        model: "meta-llama/Llama-3-70B-Instruct",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 300
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.TOGETHER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const content = llmResponse.data.choices[0].message.content;
+    console.log("🧠 LLM raw response:\n", content); // Optional debug log
+
+    // Extract JSON object from response
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON found in LLM response.");
+
+    const macros = JSON.parse(match[0]);
+    macros.source = "llm";
+    return macros;
+
+  } catch (error) {
+    console.error("❌ LLM query error:", error.response?.data || error.message);
+    return {
+      food_name: foodName,
+      calories: null,
+      protein: null,
+      carbs: null,
+      fat: null,
+      fiber: null,
+      glycemic_index: null,
+      source: "llm_error"
+    };
+  }
+}
 
 app.listen(port, () => {
   console.log(`Live at port ${port}`);

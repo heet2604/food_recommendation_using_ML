@@ -369,11 +369,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 from flask_cors import CORS
 import numpy as np
+from ultralytics import YOLO
+from PIL import Image
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+yolo_model = YOLO('best.pt')  # Path to your YOLOv8 weights
 
 app = Flask(__name__)
 CORS(app)
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # Allow up to 10MB
 
 ocr = PaddleOCR(use_angle_cls=True, lang="en")
 
@@ -842,6 +846,70 @@ def process_image():
         return jsonify({"text": extracted_text})
     except Exception as e:
         return jsonify({"error": "OCR processing failed"}), 500
+
+
+# In your Flask app (app.py)
+@app.route("/detect-food", methods=["POST"])
+def detect_food():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    
+    try:
+        file = request.files["file"]
+        image = Image.open(file.stream).convert("RGB")
+        results = yolo_model.predict(image)
+        
+        if not results[0].boxes or len(results[0].boxes.cls) == 0:
+            return jsonify({"error": "No food items detected"}), 400
+            
+        labels = [results[0].names[cls.item()] for cls in results[0].boxes.cls]
+        return jsonify({
+            "detections": labels,
+            "count": len(labels),
+            "primary_item": labels[0]  # Most confident detection
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@app.route('/food-nutrition', methods=['POST'])
+def food_nutrition():
+    data = request.get_json()
+    food_name = data.get('food_name', '').strip().lower()
+    if not food_name:
+        return jsonify({'error': 'Missing food_name'}), 400
+
+    # Get the preloaded DataFrame
+    df = service_data['full_df']
+    
+    # Case-insensitive search with whitespace handling
+    food_row = df[df['Food Name'].str.strip().str.lower() == food_name]
+    
+    if food_row.empty:
+        return jsonify({'error': f'Nutrition info not found for {food_name}'}), 404
+
+    food = food_row.iloc[0]
+    
+    # Map all CSV columns to API response
+    nutrition = {
+        'food_name': food['Food Name'].strip(),
+        'category': food['Category'],
+        'calories': int(food['Calories']),
+        'carbs': float(food['Carbs']),
+        'protein': float(food['Protein']),
+        'fat': float(food['Fats']),  # Note: CSV uses 'Fats' but we return 'fat'
+        'fiber': float(food['Fiber']),
+        'glycemic_index': int(food['GI']),
+        'glycemic_load': float(food['GL']),
+        'processed_level': food['Processed Level'],
+        'portion': food['portion_guidance'],
+        'recommendation': food['recommendation']
+    }
+
+    return jsonify(nutrition)
+
 
 # ---------- Error Handling ----------
 
