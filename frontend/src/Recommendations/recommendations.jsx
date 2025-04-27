@@ -104,7 +104,7 @@ const Recommendations = () => {
             </button>
           </div>
           <div className="hidden lg:flex items-center gap-8">
-            <a href="/home" className="nav-link flex items-center gap-2 text-gray-400 font-medium">
+            <a href="/home" className="nav-link flex items-center gap-2 text-gray-400 font-medium hover:text-green-500">
               <HomeIcon className="w-4 h-4" />
               <span>Home</span>
             </a>
