@@ -242,6 +242,33 @@ app.get("/api/latest-food/:userId", authMiddleware, async (req, res) => {
 });
 
 
+// Read and parse the CSV file
+const foodDatabase = [];
+fs.createReadStream('Indian_Foods_Dataset_With_Tags_Final.csv')
+  .pipe(csv())
+  .on('data', (row) => {
+    // Convert numeric fields and store the data
+    const foodItem = {
+      name: row['Food Name'].trim().toLowerCase(),
+      category: row['Category'],
+      calorie: parseFloat(row['Calories']) || 0,
+      carb: parseFloat(row['Carbs']) || 0,
+      protein: parseFloat(row['Protein']) || 0,
+      fat: parseFloat(row['Fats']) || 0,
+      fiber: parseFloat(row['Fiber']) || 0,
+      glycemic_index: parseFloat(row['GI']) || null,
+      recommendation: row['recommendation'],
+      portion: row['portion_guidance']
+    };
+    foodDatabase.push(foodItem);
+  })
+  .on('end', () => {
+    console.log('✅ Indian Food Database loaded with', foodDatabase.length, 'items');
+  })
+  .on('error', (error) => {
+    console.error('❌ Error loading CSV file:', error);
+  });
+
 app.post("/api/analyze", async (req, res) => {
   try {
     const { food } = req.body;
@@ -252,44 +279,28 @@ app.post("/api/analyze", async (req, res) => {
       return res.status(400).json({ message: "Food name is required" });
     }
 
-    // Fallback nutrition data for common foods
-    const nutritionFallback = {
-      apple: {
-        calorie: 52,
-        carb: 14,
-        protein: 0.3,
-        fat: 0.2,
-        fiber: 2.4,
-        glycemic_index: 36
-      },
-      banana: {
-        calorie: 89,
-        carb: 22.8,
-        protein: 1.1,
-        fat: 0.3,
-        fiber: 2.6,
-        glycemic_index: 51
-      },
-      chicken: {
-        calorie: 165,
-        carb: 0,
-        protein: 31,
-        fat: 3.6,
-        fiber: 0,
-        glycemic_index: null
-      }
-    };
+    // Search in the CSV database first
+    const searchTerm = food.trim().toLowerCase();
+    const foundItem = foodDatabase.find(item => 
+      item.name.includes(searchTerm) || searchTerm.includes(item.name)
+    );
 
-    // Check if food is in fallback database
-    if (nutritionFallback[food.toLowerCase()]) {
-      console.log("✅ Using Fallback Nutrition Data");
+    if (foundItem) {
+      console.log("✅ Found in Indian Food Database");
       return res.json({
         food: food,
-        ...nutritionFallback[food.toLowerCase()]
+        calorie: foundItem.calorie,
+        carb: foundItem.carb,
+        protein: foundItem.protein,
+        fat: foundItem.fat,
+        fiber: foundItem.fiber,
+        glycemic_index: foundItem.glycemic_index,
+        recommendation: foundItem.recommendation,
+        portion: foundItem.portion
       });
     }
 
-    // Only attempt LLM call if not in fallback
+    // Only attempt LLM call if not in database
     try {
       const response = await axios.post(
         "https://api.together.xyz/v1/chat/completions",
@@ -356,15 +367,16 @@ app.post("/api/analyze", async (req, res) => {
     } catch (llmError) {
       console.error("❌ LLM API Error:", llmError.response?.data || llmError.message);
 
-      // Fallback to extremely basic nutrition data if LLM fails
+      // Fallback to basic nutrition data if LLM fails
       res.json({
         food: food,
-        calorie: 50,
-        carb: 10,
-        protein: 1,
-        fat: 1,
-        fiber: 1,
-        glycemic_index: null
+        calorie: 0,
+        carb: 0,
+        protein: 0,
+        fat: 0,
+        fiber: 0,
+        glycemic_index: null,
+        message: "Nutrition data not available"
       });
     }
 

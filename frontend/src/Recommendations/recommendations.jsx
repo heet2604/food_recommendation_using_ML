@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from 'axios';
@@ -11,6 +11,45 @@ const Recommendations = () => {
   const [alternatives, setAlternatives] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [latestSugarReading, setLatestSugarReading] = useState(null);
+  const [sugarStatus, setSugarStatus] = useState("");
+
+  // Fetch latest blood sugar reading
+  const fetchLatestSugarReading = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/vitals", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")?.trim()}`,
+        },
+      });
+
+      if (response.data.vitals && response.data.vitals.length > 0) {
+        // Sort by timestamp to get the latest reading
+        const sortedVitals = [...response.data.vitals].sort((a, b) => 
+          new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        const latest = sortedVitals[0];
+        setLatestSugarReading(latest.sugarReading);
+        
+        // Determine status based on blood sugar level
+        if (latest.sugarReading < 70) {
+          setSugarStatus("Low");
+        } else if (latest.sugarReading >= 70 && latest.sugarReading <= 130) {
+          setSugarStatus("Normal");
+        } else if (latest.sugarReading > 130 && latest.sugarReading <= 180) {
+          setSugarStatus("Elevated");
+        } else {
+          setSugarStatus("High");
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching vitals:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLatestSugarReading();
+  }, []);
 
   const generateAlternatives = async () => {
     try {
@@ -36,6 +75,7 @@ const Recommendations = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black px-4 py-8 md:py-12">
+      
       {/* Navbar */}
       <nav className="w-full bg-gray-900 px-6 border-b border-green-500/20 shadow-lg shadow-green-500/5 sticky top-0 z-50 mb-10">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -87,6 +127,7 @@ const Recommendations = () => {
           </div>
         </div>
       </nav>
+
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-green-500/20 shadow-xl fixed w-full z-40">
@@ -114,6 +155,46 @@ const Recommendations = () => {
           </div>
         </div>
       )}
+      {/* Blood Sugar Status Bar */}
+      {latestSugarReading !== null && (
+        <div className={`max-w-4xl mx-auto mb-6 p-4 rounded-lg border ${
+          sugarStatus === "Low" ? "border-yellow-500 bg-yellow-500/10" :
+          sugarStatus === "Normal" ? "border-green-500 bg-green-500/10" :
+          sugarStatus === "Elevated" ? "border-orange-500 bg-orange-500/10" :
+          "border-red-500 bg-red-500/10"
+        }`}>
+          <div className="flex items-center justify-between text-white">
+            <div className="flex items-center gap-3">
+              <Activity className="w-5 h-5" />
+              <div>
+                <p className="text-sm font-medium">Latest Blood Sugar</p>
+                <p className="text-lg font-bold">
+                  {latestSugarReading} mg/dL
+                  <span className={`ml-2 text-sm px-2 py-1 rounded-full ${
+                    sugarStatus === "Low" ? "bg-yellow-500/20 text-yellow-400" :
+                    sugarStatus === "Normal" ? "bg-green-500/20 text-green-400" :
+                    sugarStatus === "Elevated" ? "bg-orange-500/20 text-orange-400" :
+                    "bg-red-500/20 text-red-400"
+                  }`}>
+                    {sugarStatus}
+                  </span>
+                </p>
+              </div>
+            </div>
+            <a 
+              href="/vitals" 
+              className="text-sm flex items-center gap-1 hover:underline"
+            >
+              View history
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      )}
+
+
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12 animate-fadeIn">
           <span className="inline-block px-3 py-1 rounded-full bg-green-400/10 text-green-400 text-xs font-medium tracking-wider mb-4">
@@ -126,6 +207,7 @@ const Recommendations = () => {
             Discover nutritious substitutes for your favorite foods and elevate your diet with healthier options.
           </p>
         </div>
+
         <div className="flex flex-col items-center justify-center gap-4 mb-12">
           <div className="w-full max-w-md">
             <input
@@ -150,6 +232,7 @@ const Recommendations = () => {
             </span>
           </button>
         </div>
+
         <div className={`bg-black/30 backdrop-blur-md border border-green-400/20 rounded-xl shadow-xl p-6 md:p-8 
                         transition-all duration-300 ease-out ${alternatives.length ? 'opacity-100 transform translate-y-0' : 'opacity-80 transform translate-y-4'}`}>
           <h2 className="text-green-400 text-xl font-semibold mb-6">Healthier Alternatives</h2>
@@ -192,6 +275,7 @@ const Recommendations = () => {
               </p>
             </div>
           )}
+
           {alternatives.length > 0 && (
             <div className="mt-6 pt-6 border-t border-green-400/10">
               <div className="flex justify-between items-center">
