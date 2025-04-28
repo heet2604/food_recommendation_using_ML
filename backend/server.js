@@ -29,8 +29,7 @@ app.use(express.json());
 
 const whitelist = [
   'http://localhost:3000',
-  'https://food-recommendation-using-ml.vercel.app',
-  'https://main.d2om8mnfo1aqsm.amplifyapp.com/'
+  'https://food-recommendation-using-ml.vercel.app'
 ];
 
 app.use(cors({
