@@ -35,7 +35,7 @@ app.use((req, res, next) => {
 const whitelist = [
   'http://localhost:3000',
   'https://food-recommendation-using-ml.vercel.app',
-  'http://ec2-15-207-111-102.ap-south-1.compute.amazonaws.com'
+  'http://ec2-65-0-131-19.ap-south-1.compute.amazonaws.com'
 ];
 
 app.use(cors({
