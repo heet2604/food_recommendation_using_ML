@@ -34,7 +34,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/signup", {
+      const response = await axios.post("https://main.d3eglrc4aitk15.amplifyapp.com/signup", {
         firstname,
         lastname,
         contact,

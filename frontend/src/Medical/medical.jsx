@@ -35,7 +35,7 @@ export default function Medical() {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("http://localhost:5000/api/medical", formData, {
+      const { data } = await axios.post("https://main.d3eglrc4aitk15.amplifyapp.com/api/medical", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

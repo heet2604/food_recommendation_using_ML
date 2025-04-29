@@ -10,7 +10,7 @@ function Landing() {
   useEffect(() => {
     setIsLoaded(true);
 
-    axios.get('http://13.233.81.155:5000')
+    axios.get('https://main.d3eglrc4aitk15.amplifyapp.com/')
       .then(response => {
         console.log('Data fetched from backend:', response.data);
       })

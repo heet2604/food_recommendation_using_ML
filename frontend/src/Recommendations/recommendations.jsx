@@ -17,7 +17,7 @@ const Recommendations = () => {
   // Fetch latest blood sugar reading
   const fetchLatestSugarReading = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/vitals", {
+      const response = await axios.get("https://main.d3eglrc4aitk15.amplifyapp.com//api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")?.trim()}`,
         },
@@ -55,7 +55,7 @@ const Recommendations = () => {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        "http://localhost:5000/api/generate-meal-plan",
+        "https://main.d3eglrc4aitk15.amplifyapp.com/api/generate-meal-plan",
         { food: foodItem },
         {
           headers: { 

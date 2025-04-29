@@ -46,11 +46,11 @@ function FoodDetails() {
 
       let response;
       if (location.state && location.state.foodId) {
-        response = await axios.get(`http://localhost:5000/api/selected-food/${location.state.foodId}`, {
+        response = await axios.get(`https://main.d3eglrc4aitk15.amplifyapp.com/api/selected-food/${location.state.foodId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } else {
-        response = await axios.get(`http://localhost:5000/api/latest-food/${userId}`, {
+        response = await axios.get(`https://main.d3eglrc4aitk15.amplifyapp.com/api/latest-food/${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
       }
@@ -97,7 +97,7 @@ function FoodDetails() {
       };
 
       await axios.post(
-        "http://localhost:5000/api/add-food-to-dashboard",
+        "https://main.d3eglrc4aitk15.amplifyapp.com/api/add-food-to-dashboard",
         nutritionalData,
         {
           headers: { Authorization: `Bearer ${token}` }

@@ -54,7 +54,7 @@ const FoodImage = () => {
       const formData = new FormData();
       formData.append('file', selectedImage);
   
-      const response = await axios.post('http://localhost:5000/upload', formData, {
+      const response = await axios.post('https://main.d3eglrc4aitk15.amplifyapp.com/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -96,7 +96,7 @@ const FoodImage = () => {
       };
 
       await axios.post(
-        "http://localhost:5000/api/add-food-to-dashboard",
+        "https://main.d3eglrc4aitk15.amplifyapp.com/api/add-food-to-dashboard",
         nutritionalData,
         {
           headers: { Authorization: `Bearer ${token}` }
