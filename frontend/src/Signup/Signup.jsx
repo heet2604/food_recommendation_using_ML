@@ -29,12 +29,12 @@ const Signup = () => {
     if (!firstname || !lastname || !contact || !username || !email || !password) {
       toast.error("Please fill in all fields");
       return;
-    }
+    } 
 
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/signup", {
+      const response = await axios.post("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/signup", {
         firstname,
         lastname,
         contact,

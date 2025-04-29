@@ -22,7 +22,7 @@ const ProfilePage = () => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem("token")
-                const response = await axios.get("http://localhost:5000/profile", {
+                const response = await axios.get("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/profile", {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });
@@ -50,7 +50,7 @@ const ProfilePage = () => {
                 lastname: user.lastname,
                 contact: user.contact
             }
-            await axios.put("http://localhost:5000/profile", updatedProfile, {
+            await axios.put("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/profile", updatedProfile, {
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
             });
