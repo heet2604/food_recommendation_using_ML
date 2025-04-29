@@ -22,7 +22,7 @@ function Vitals() {
 
   const fetchVitals = async () => {
     try {
-      const response = await axios.get("https://main.d3eglrc4aitk15.amplifyapp.com/api/vitals", {
+      const response = await axios.get("https://13.233.151.122:5000/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -40,7 +40,7 @@ function Vitals() {
   const addVitalsReading = async () => {
     try {
       await axios.post(
-        "https://main.d3eglrc4aitk15.amplifyapp.com/api/vitals",
+        "https://13.233.151.122:5000/api/vitals",
         { sugarReading, weightReading },
         {
           headers: {

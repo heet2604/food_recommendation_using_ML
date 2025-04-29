@@ -30,7 +30,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("https://main.d3eglrc4aitk15.amplifyapp.com/login", {
+      const response = await axios.post("https://13.233.151.122:5000/login", {
         username,
         password,
       });

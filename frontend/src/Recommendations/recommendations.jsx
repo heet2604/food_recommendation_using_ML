@@ -17,7 +17,7 @@ const Recommendations = () => {
   // Fetch latest blood sugar reading
   const fetchLatestSugarReading = async () => {
     try {
-      const response = await axios.get("https://main.d3eglrc4aitk15.amplifyapp.com//api/vitals", {
+      const response = await axios.get("https://13.233.151.122:5000/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")?.trim()}`,
         },

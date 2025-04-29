@@ -22,7 +22,7 @@ const ProfilePage = () => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem("token")
-                const response = await axios.get("https://main.d3eglrc4aitk15.amplifyapp.com/profile", {
+                const response = await axios.get("https://13.233.151.122:5000/profile", {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });
