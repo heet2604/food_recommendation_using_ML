@@ -22,7 +22,7 @@ const ProfilePage = () => {
         const fetchUserData = async () => {
             try {
                 const token = localStorage.getItem("token")
-                const response = await axios.get("https://13.233.151.122:5000/profile", {
+                const response = await axios.get("http://localhost:5000/profile", {
                     headers: { Authorization: `Bearer ${token}` },
                     withCredentials: true,
                 });
@@ -50,7 +50,7 @@ const ProfilePage = () => {
                 lastname: user.lastname,
                 contact: user.contact
             }
-            await axios.put("https://main.d3eglrc4aitk15.amplifyapp.com/profile", updatedProfile, {
+            await axios.put("http://localhost:5000/profile", updatedProfile, {
                 headers: { Authorization: `Bearer ${token}` },
                 withCredentials: true,
             });

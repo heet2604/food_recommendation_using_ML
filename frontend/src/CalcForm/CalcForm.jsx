@@ -32,7 +32,7 @@ const CalcForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://13.233.151.122:5000/api/calculate-goals", {
+      const response = await fetch("http://localhost:5000/api/calculate-goals", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
