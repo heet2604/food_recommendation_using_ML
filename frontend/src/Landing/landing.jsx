@@ -10,7 +10,7 @@ function Landing() {
   useEffect(() => {
     setIsLoaded(true);
 
-    axios.get('http://13.127.22.103:5000')
+    axios.get('http://13.233.81.155:5000')
       .then(response => {
         console.log('Data fetched from backend:', response.data);
       })
