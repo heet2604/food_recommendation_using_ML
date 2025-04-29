@@ -22,7 +22,7 @@ function Vitals() {
 
   const fetchVitals = async () => {
     try {
-      const response = await axios.get("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals", {
+      const response = await axios.get("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -40,7 +40,7 @@ function Vitals() {
   const addVitalsReading = async () => {
     try {
       await axios.post(
-        "ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals",
+        "http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals",
         { sugarReading, weightReading },
         {
           headers: {

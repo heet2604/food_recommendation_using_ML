@@ -34,7 +34,7 @@ const Signup = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/signup", {
+      const response = await axios.post("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/signup", {
         firstname,
         lastname,
         contact,

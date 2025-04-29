@@ -117,7 +117,7 @@ export default function DashboardHome() {
   useEffect(() => {
     const fetchGoal = async () => {
       try {
-        const response = await axios.get("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/fetchGoal", {
+        const response = await axios.get("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/fetchGoal", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`, // Send JWT if required
           },
@@ -141,7 +141,7 @@ export default function DashboardHome() {
 
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/dashboard-data", {
+        const response = await axios.get("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/dashboard-data", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

@@ -43,7 +43,7 @@ const Search = () => {
       setIsLoading(true);
       const formattedSearch = search.trim().toLowerCase();
       const response = await axios.post(
-        "ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/analyze",
+        "http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/analyze",
         { food: formattedSearch },
         { headers: { "Content-Type": "application/json" } }
       );
@@ -119,7 +119,7 @@ const Search = () => {
   
     try {
       const response = await axios.post(
-        "ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/add-food",
+        "http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/add-food",
         foodWithQuantity,
         {
           headers: {

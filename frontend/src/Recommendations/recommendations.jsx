@@ -17,7 +17,7 @@ const Recommendations = () => {
   // Fetch latest blood sugar reading
   const fetchLatestSugarReading = async () => {
     try {
-      const response = await axios.get("ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals", {
+      const response = await axios.get("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")?.trim()}`,
         },
@@ -55,7 +55,7 @@ const Recommendations = () => {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        "ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/generate-meal-plan",
+        "http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/generate-meal-plan",
         { food: foodItem },
         {
           headers: { 
