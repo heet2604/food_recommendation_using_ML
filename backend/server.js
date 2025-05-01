@@ -865,7 +865,7 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
     const formData = new FormData();
     formData.append("file", fs.createReadStream(filePath));
 
-    const ocrResponse = await axios.post("http://43.204.227.251:5001/ocr", formData, {
+    const ocrResponse = await axios.post("http://127.0.0.1:5001/ocr", formData, {
       headers: { ...formData.getHeaders() },
     });
 
@@ -918,7 +918,7 @@ app.post("/api/generate-meal-plan", async (req, res) => {
     }
 
     // Replace with your Flask server's URL if deployed elsewhere
-    const flaskUrl = process.env.FLASK_API_URL || "http://43.204.227.251:5001/recommend";
+    const flaskUrl = process.env.FLASK_API_URL || "http://127.0.0.1:5001/recommend";
 
     // Call the Flask microservice
     const response = await axios.post(flaskUrl, { food });
@@ -948,7 +948,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     // 1. Get detection from Flask
     const detectionResponse = await axios.post(
-      "http://43.204.227.251:5001/recommend/detect-food",
+      "http://127.0.0.1:5001/detect-food",
       flaskFormData,
       {
         headers: flaskFormData.getHeaders(),
@@ -966,7 +966,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     // 2. Get nutrition data
     const nutritionResponse = await axios.post(
-      "http://43.204.227.251:5001/recommend/food-nutrition",
+      "http://127.0.0.1:5001/food-nutrition",
       { food_name: detectedFood }
     );
 
