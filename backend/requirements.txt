@@ -7,3 +7,5 @@ paddleocr
 flask-cors
 waitress
 ultralytics
+scikit-learn
+pandas
