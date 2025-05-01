@@ -1,11 +1,8 @@
 flask
-pytesseract
 pillow
-opencv-python
 paddlepaddle
 paddleocr
 flask-cors
-waitress
 ultralytics
 scikit-learn
 pandas
