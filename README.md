@@ -39,7 +39,5 @@ Nourish is a smart food recommendation platform designed to help individuals—e
 | Frontend         | Backend            | ML & AI Models       | Other Tools           |
 |------------------|--------------------|----------------------|------------------------|
 | React.js         | Node.js, Express   | YOLOv8, LLaMA 3.0    | PaddleOCR, Together AI |
-| Tailwind CSS     | MongoDB            | Collaborative Filtering (JS) | Roboflow (Custom Dataset) |
-| WhatsApp Cloud API | JWT, Bcrypt, OTP  | Content-Based Filtering (JS) | GitHub Actions (CI/CD)   |
-
+| Tailwind CSS     | MongoDB            | Content Based Filtering | Roboflow (Custom Dataset) |
 ---
