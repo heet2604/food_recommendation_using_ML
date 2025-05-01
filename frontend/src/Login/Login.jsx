@@ -24,7 +24,7 @@ const Login = () => {
 
     if (!username || !password) {
       toast.error("Please enter both username and password");
-      return;
+      return; 
     }
 
     setIsLoading(true);
