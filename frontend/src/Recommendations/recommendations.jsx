@@ -17,7 +17,7 @@ const Recommendations = () => {
   // Fetch latest blood sugar reading
   const fetchLatestSugarReading = async () => {
     try {
-      const response = await axios.get("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/vitals", {
+      const response = await axios.get("http://localhost:5000/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")?.trim()}`,
         },
@@ -55,7 +55,7 @@ const Recommendations = () => {
     try {
       setIsLoading(true);
       const response = await axios.post(
-        "http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/generate-meal-plan",
+        "http://localhost:5000/api/generate-meal-plan",
         { food: foodItem },
         {
           headers: { 
@@ -280,13 +280,13 @@ const Recommendations = () => {
             <div className="mt-6 pt-6 border-t border-green-400/10">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-400">Want different options?</span>
-                <button
+                {/* <button
                   onClick={generateAlternatives}
                   className="px-4 py-2 border border-green-400/20 rounded-lg text-green-400 text-sm
                            hover:bg-green-400/10 transition-all"
                 >
                   Regenerate
-                </button>
+                </button> */}
               </div>
             </div>
           )}

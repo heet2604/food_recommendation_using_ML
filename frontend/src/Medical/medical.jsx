@@ -35,7 +35,7 @@ export default function Medical() {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("http://ec2-3-110-83-161.ap-south-1.compute.amazonaws.com/api/medical", formData, {
+      const { data } = await axios.post("http://localhost:5000/api/medical", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

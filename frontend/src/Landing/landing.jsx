@@ -10,7 +10,7 @@ function Landing() {
   useEffect(() => {
     setIsLoaded(true);
 
-    axios.get('http://ec2-65-0-131-19.ap-south-1.compute.amazonaws.com')
+    axios.get('http://localhost:3000')
       .then(response => {
         console.log('Data fetched from backend:', response.data);
       })
