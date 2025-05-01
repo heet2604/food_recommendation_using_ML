@@ -158,7 +158,7 @@ const FoodImage = () => {
             <a href="/food_details" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
               Food Details
             </a>
-            <a href="/dashboard" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
+            <a href="/profile" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
               Dashboard
             </a>
           </div>
@@ -178,7 +178,7 @@ const FoodImage = () => {
             <a href="/food_details" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
               Food Details
             </a>
-            <a href="/dashboard" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
+            <a href="/profile" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
               Dashboard
             </a>
           </div>
