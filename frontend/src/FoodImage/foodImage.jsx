@@ -150,20 +150,16 @@ const FoodImage = () => {
 
           <div className="hidden lg:flex items-center gap-8">
             <a href="/home" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
-            <HomeIcon className="w-4 h-4" />
-              <span>Home</span>
+              Home
             </a>
             <a href="/food_analyzer" className="flex items-center gap-2 text-green-400 font-medium">
-            <Activity className="w-4 h-4" />
-            <span>Food Analyzer</span>
+              Food Analyzer
             </a>
             <a href="/food_details" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
-              <Coffee className="w-4 h-4" />
-              <span>Food Details</span>
+              Food Details
             </a>
             <a href="/profile" className="flex items-center gap-2 text-gray-400 hover:text-green-500 transition-colors">
-              <User className="w-4 h-4" />
-              <span>Profile</span>
+              Profile
             </a>
           </div>
         </div>
@@ -174,20 +170,16 @@ const FoodImage = () => {
         <div className="lg:hidden bg-gray-900/95 backdrop-blur-sm border-b border-green-500/20 shadow-xl fixed w-full z-40">
           <div className="flex flex-col space-y-4 p-4">
             <a href="/home" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
-            <HomeIcon className="w-4 h-4" />
-            <span>Home</span>
+              Home
             </a>
             <a href="/food_analyzer" className="py-2 px-4 rounded-lg bg-green-500/10 flex items-center gap-3 text-green-500">
-            <Activity className="w-4 h-4" />
-            <span>Food Analyzer</span>
+              Food Analyzer
             </a>
             <a href="/food_details" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
-            <Coffee className="w-4 h-4" />
-            <span>Food Details</span>
+              Food Details
             </a>
             <a href="/profile" className="py-2 px-4 rounded-lg hover:bg-gray-800 flex items-center gap-3 text-gray-300">
-            <User className="w-4 h-4" />
-            <span>Profile</span>
+              Dashboard
             </a>
           </div>
         </div>
