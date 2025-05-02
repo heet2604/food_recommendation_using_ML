@@ -125,10 +125,10 @@ function FoodDetails() {
   const suggestedFoods = [
     { emoji: "🥑", name: "Avocado" },
     { emoji: "🍓", name: "Strawberries" },
-    { emoji: "🍗", name: "Chicken breast" },
+    { emoji: "🫘", name: "Rajma" },
     { emoji: "🥜", name: "Almonds" },
     { emoji: "🍞", name: "Whole Grain Bread" },
-    { emoji: "🍣", name: "Salmon" }
+    { emoji: "🥚", name: "Boiled eggs" }
   ];
 
   return (

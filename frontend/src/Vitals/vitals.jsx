@@ -19,10 +19,11 @@ function Vitals() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [sugarReadings, setSugarReadings] = useState([]);
   const [weightReadings, setWeightReadings] = useState([]);
+  const [isLoading, setisLoading] = useState(false)
 
   const fetchVitals = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/vitals", {
+      const response = await axios.get("https://food-recommendation-using-ml.onrender.com/api/vitals", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -50,63 +51,65 @@ function Vitals() {
       );
 
       toast.success("Vitals reading added successfully");
-      
+
       // Update local state
-      const newReading = { 
-        value: weightReading, 
-        timestamp: new Date().toISOString() 
+      const newReading = {
+        value: weightReading,
+        timestamp: new Date().toISOString()
       };
       setWeightReadings(prev => [newReading, ...prev]);
 
-      const newSugarReading = { 
-        value: sugarReading, 
-        timestamp: new Date().toISOString() 
+      const newSugarReading = {
+        value: sugarReading,
+        timestamp: new Date().toISOString()
       };
       setSugarReadings(prev => [newSugarReading, ...prev]);
     } catch (error) {
       console.error("Error adding vitals:", error);
       toast.error("Failed to add vitals reading");
     }
+    finally {
+      setisLoading(false)
+    }
   };
 
- 
 
   useEffect(() => {
     fetchVitals();
   }, []);
 
-  
+
   const sugarIncrement = () => setSugarReading((prev) => Math.max(prev + 1, 0));
   const sugarDecrement = () => setSugarReading((prev) => Math.max(prev - 1, 0));
 
   const weightIncrement = () => setWeightReading((prev) => Math.max(prev + 0.1, 0));
   const weightDecrement = () => setWeightReading((prev) => Math.max(prev - 0.1, 0));
 
-  
+
 
   const addSugarReading = () => {
     addVitalsReading();
   };
 
-  
+
 
   const addWeightReading = () => {
     addVitalsReading();
   };
 
-  
+
 
 
   const BloodSugarGraphInline = ({ readings }) => {
     const data = readings
-  .map((reading) => ({
-    value: reading.value,
-    time: format(new Date(reading.timestamp), "HH:mm"),
-    timestamp: reading.timestamp // Preserve the timestamp for sorting
-  }))
-  .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      .map((reading) => ({
+        value: reading.value,
+        time: format(new Date(reading.timestamp), "HH:mm"),
+        timestamp: reading.timestamp // Preserve the timestamp for sorting
+      }))
+      .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-  
+
     return (
       <div className="w-full h-[350px]">
         {readings.length === 0 ? (
@@ -147,7 +150,7 @@ function Vitals() {
     );
   };
 
-  
+
   const WeightGraph = ({ readings }) => {
     const data = [...readings]
       .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
@@ -316,10 +319,21 @@ function Vitals() {
             </div>
             <div className="mt-6">
               <button
-                onClick={addSugarReading}
-                className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-3 rounded-lg hover:from-green-500 hover:to-green-400 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-900/20"
+                onClick={addVitalsReading}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-3 rounded-lg hover:from-green-500 hover:to-green-400 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-900/20 disabled:opacity-70"
               >
-                <span>Add Reading</span>
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Adding Reading...</span>
+                  </>
+                ) : (
+                  <span>Add Reading</span>
+                )}
               </button>
             </div>
           </div>
@@ -359,10 +373,21 @@ function Vitals() {
             </div>
             <div className="mt-6">
               <button
-                onClick={addWeightReading}
-                className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-3 rounded-lg hover:from-green-500 hover:to-green-400 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-900/20"
+                onClick={addVitalsReading}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-green-600 to-green-500 text-white px-4 py-3 rounded-lg hover:from-green-500 hover:to-green-400 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-lg shadow-green-900/20 disabled:opacity-70"
               >
-                <span>Add Reading</span>
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Adding Reading...</span>
+                  </>
+                ) : (
+                  <span>Add Reading</span>
+                )}
               </button>
             </div>
           </div>
@@ -397,7 +422,7 @@ function Vitals() {
         </div>
       </div>
 
-      
+
     </div>
   );
 }
