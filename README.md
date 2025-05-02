@@ -13,14 +13,13 @@ Nourish is a smart food recommendation platform designed to help individuals—e
   Log and track blood sugar levels. Get personalized recommendations based on sugar spikes.
 
 - 🧠 **Recommendation Engine**  
-  - Content-Based Filtering  
-  - Collaborative Filtering  
+  - Content-Based Filtering    
   Built using JavaScript to reduce API call costs and latency.
 
 - 🥦 **Food Image Recognition**  
   Upload food images to get food names and macro information using YOLOv8 (custom-trained on Roboflow).
 
-- 📊 **Weekly Progress Tracker**  
+- 📊 **Progress Tracker**  
   Visualize your dietary progress and sugar levels over time.
 
 - 🧾 **Medical Report Upload & Summarization**  
@@ -28,9 +27,6 @@ Nourish is a smart food recommendation platform designed to help individuals—e
 
 - 💬 **WhatsApp Chatbot**  
   AI-powered chatbot for simple food recommendations and interaction.
-
-- 🧪 **Gamification & Community Support**  
-  Earn points, badges, and connect with others on a similar journey.
 
 ---
 
