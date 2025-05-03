@@ -64,7 +64,7 @@ const ProfilePage = () => {
     // Logout user
     const handleLogout = () => {
         localStorage.removeItem("token"); // Clear token
-        navigate("/login"); // Redirect to login page
+        navigate("/"); // Redirect to login page
     };
 
     const handleHomeClick = () => {
