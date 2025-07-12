@@ -865,7 +865,7 @@ app.post("/api/medical", upload.single("file"), async (req, res) => {
     const formData = new FormData();
     formData.append("file", fs.createReadStream(filePath));
 
-    const ocrResponse = await axios.post("https://c5dc-202-71-156-66.ngrok-free.app/ocr", formData, {
+    const ocrResponse = await axios.post(`${process.env.NGROK_URL}/ocr`, formData, {
       headers: { ...formData.getHeaders() },
     });
 
@@ -918,7 +918,7 @@ app.post("/api/generate-meal-plan", async (req, res) => {
     }
 
     // Replace with your Flask server's URL if deployed elsewhere
-    const flaskUrl = process.env.FLASK_API_URL || "https://c5dc-202-71-156-66.ngrok-free.app/recommend";
+    const flaskUrl = process.env.FLASK_API_URL || `${process.env.NGROK_URL}/recommend`;
 
     // Call the Flask microservice
     const response = await axios.post(flaskUrl, { food });
@@ -948,7 +948,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     // 1. Get detection from Flask
     const detectionResponse = await axios.post(
-      "https://c5dc-202-71-156-66.ngrok-free.app/detect-food",
+      `${process.env.NGROK_URL}/detect-food`,
       flaskFormData,
       {
         headers: flaskFormData.getHeaders(),
@@ -966,7 +966,7 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     // 2. Get nutrition data
     const nutritionResponse = await axios.post(
-      "https://c5dc-202-71-156-66.ngrok-free.app/food-nutrition",
+      `${process.env.NGROK_URL}/food-nutrition`,
       { food_name: detectedFood }
     );
 
