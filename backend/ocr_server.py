@@ -6,7 +6,6 @@ import base64
 import cv2
 import numpy as np
 from flask import Flask, request, jsonify
-from paddleocr import PaddleOCR
 import os
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
@@ -16,6 +15,18 @@ from flask_cors import CORS
 # Initialize models with correct paths
 food_model = YOLO("./best.pt")
 coin_model = YOLO("./best(2-rs-coin).pt")  # Make sure this file exists
+
+# Initialize OCR with error handling
+try:
+    from paddleocr import PaddleOCR
+    ocr = PaddleOCR(use_angle_cls=True, lang="en")
+    OCR_AVAILABLE = True
+    print("✅ OCR initialized successfully")
+except Exception as e:
+    print(f"⚠️ OCR initialization failed: {e}")
+    print("⚠️ OCR features will be disabled")
+    OCR_AVAILABLE = False
+    ocr = None
 
 def main():
     image_data = base64.b64decode(sys.stdin.read())
@@ -34,8 +45,6 @@ app = Flask(__name__)
 CORS(app)
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # Allow up to 10MB
 
-ocr = PaddleOCR(use_angle_cls=True, lang="en")
-
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -49,7 +58,6 @@ FOOD_DENSITIES = {
     "bhindi": 0.62, "coconut chutney": 0.37, "khandvi": 1.0, "medu vada": 0.89,
     "omlette": 0.95, "yogurt": 1.031, "dhokla": 0.17, "pulao": 0.68, 
     "thepla": 0.71, "sambhar": 0.88, "salad": 0.21, "rajma": 1.05,
-    # Add more foods from your dataset as needed
     "idli": 0.85, "dosa": 0.35, "vada": 0.89, "puri": 0.45, "paratha": 0.55
 }
 
@@ -237,7 +245,12 @@ def initialize_service():
         'features': features
     }
 
+print("🚀 Initializing food service...")
 service_data = initialize_service()
+if service_data:
+    print("✅ Food service initialized successfully!")
+else:
+    print("❌ Food service initialization failed!")
 
 def handle_dessert_recommendation(food_name):
     """Special handling for dessert recommendations - always recommend fruit salad"""
@@ -279,22 +292,6 @@ def handle_dessert_recommendation(food_name):
                 'protein': 1,
                 'fats': 0
             }
-        },
-        {
-            'name': 'Berry Fruit Salad',
-            'category': 'Healthy Dessert',
-            'group': 'dessert',
-            'health_status': 'diabetic_friendly',
-            'processed_level': 'unprocessed',
-            'preparation': 'Mix strawberries, blueberries, raspberries, and blackberries.',
-            'portion': 'One cup (about 150g)',
-            'similarity': 0.85,
-            'nutrition': {
-                'calories': 75,
-                'carbs': 16,
-                'protein': 1,
-                'fats': 0
-            }
         }
     ]
     
@@ -307,17 +304,40 @@ def handle_dessert_recommendation(food_name):
         'fruit_salad_tips': [
             "Fresh fruit salads are naturally sweet and provide essential vitamins, minerals, and fiber",
             "The fiber in fruit helps slow sugar absorption, making it better for blood glucose control",
-            "Portion control is still important - stick to the recommended serving sizes",
-            "Add nuts or seeds for healthy fats and protein to further reduce glycemic impact"
+            "Portion control is still important - stick to the recommended serving sizes"
         ]
     })
 
 # ---------- API Endpoints ----------
 
+@app.route('/')
+def home():
+    return jsonify({
+        "message": "Nourish API is running!",
+        "endpoints": {
+            "/detect-food": "Detect food items in image",
+            "/estimate-quantity": "Estimate food quantity with coin reference",
+            "/detect-and-estimate": "Combined detection and quantity estimation",
+            "/recommend": "Get food recommendations",
+            "/food-nutrition": "Get nutrition information",
+            "/ocr": "OCR text extraction (if available)"
+        },
+        "status": {
+            "ocr_available": OCR_AVAILABLE,
+            "food_service_ready": service_data is not None
+        }
+    })
+
 @app.route('/recommend', methods=['POST'])
 def recommend():
     """Main recommendation endpoint for any food"""
+    if not service_data:
+        return jsonify({'error': 'Food service not initialized'}), 500
+        
     data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No JSON data provided'}), 400
+        
     food_name = data.get('food', '').strip()
     
     if not food_name:
@@ -452,13 +472,97 @@ def detect_and_estimate():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/detect-food", methods=["POST"])
+def detect_food():
+    """Detect food items in image"""
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    
+    try:
+        file = request.files["file"]
+        image = Image.open(file.stream).convert("RGB")
+        results = yolo_model.predict(image)
+        
+        if not results[0].boxes or len(results[0].boxes.cls) == 0:
+            return jsonify({"error": "No food items detected"}), 400
+            
+        labels = [results[0].names[cls.item()] for cls in results[0].boxes.cls]
+        return jsonify({
+            "detections": labels,
+            "count": len(labels),
+            "primary_item": labels[0]
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/food-nutrition', methods=['POST'])
+def food_nutrition():
+    """Get nutrition information for a food"""
+    if not service_data:
+        return jsonify({'error': 'Food service not initialized'}), 500
+        
+    data = request.get_json()
+    food_name = data.get('food_name', '').strip().lower()
+    if not food_name:
+        return jsonify({'error': 'Missing food_name'}), 400
+
+    df = service_data['full_df']
+    food_row = df[df['Food Name'].str.strip().str.lower() == food_name]
+    
+    if food_row.empty:
+        return jsonify({'error': f'Nutrition info not found for {food_name}'}), 404
+
+    food = food_row.iloc[0]
+    
+    nutrition = {
+        'food_name': food['Food Name'].strip(),
+        'category': food['Category'],
+        'calories': int(food['Calories']),
+        'carbs': float(food['Carbs']),
+        'protein': float(food['Protein']),
+        'fat': float(food['Fats']),
+        'fiber': float(food['Fiber']),
+        'glycemic_index': int(food['GI']),
+        'glycemic_load': float(food['GL']),
+        'processed_level': food['Processed Level'],
+        'portion': food['portion_guidance'],
+        'recommendation': food['recommendation']
+    }
+
+    return jsonify(nutrition)
+
+@app.route("/ocr", methods=["POST"])
+def process_image():
+    """OCR text extraction"""
+    if not OCR_AVAILABLE:
+        return jsonify({"error": "OCR service not available"}), 503
+        
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    
+    file = request.files["file"]
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    
+    try:
+        file.save(file_path)
+        results = ocr.ocr(file_path, cls=True)
+        extracted_text = "\n".join([line[1][0] for res in results for line in res])
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return jsonify({"text": extracted_text})
+    except Exception as e:
+        return jsonify({"error": "OCR processing failed"}), 500
+
+# Helper functions (get_diabetic_recommendations, get_healthy_alternatives, _format_recommendation)
 def get_diabetic_recommendations(food_name, top_n=5):
-    """Get similar diabetes-friendly food recommendations within the same category group."""
+    if not service_data:
+        return "Service not initialized"
+        
     df = service_data['full_df']
     filtered_df = service_data['filtered_df']
     group_matrices = service_data['group_matrices']
     group_indices = service_data['group_indices']
-    features = service_data['features']
     
     matches = filtered_df[filtered_df['Food Name'].str.lower() == food_name.lower()]
     if matches.empty:
@@ -485,7 +589,9 @@ def get_diabetic_recommendations(food_name, top_n=5):
     return recommendations
 
 def get_healthy_alternatives(food_name, top_n=5):
-    """Recommend healthy alternatives from the same category group when an unhealthy food is queried."""
+    if not service_data:
+        return "Service not initialized"
+        
     df = service_data['full_df']
     filtered_df = service_data['filtered_df']
     features = service_data['features']
@@ -524,7 +630,9 @@ def get_healthy_alternatives(food_name, top_n=5):
     return results
 
 def _format_recommendation(idx, score=None):
-    """Format a recommendation for output"""
+    if not service_data:
+        return {"error": "Service not initialized"}
+        
     df = service_data['full_df']
     filtered_df = service_data['filtered_df']
     
@@ -569,89 +677,14 @@ def _format_recommendation(idx, score=None):
         }
     }
 
-# Your existing endpoints
-@app.route("/ocr", methods=["POST"])
-def process_image():
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
-    
-    file = request.files["file"]
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    
-    try:
-        file.save(file_path)
-        results = ocr.ocr(file_path, cls=True)
-        extracted_text = "\n".join([line[1][0] for res in results for line in res])
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        return jsonify({"text": extracted_text})
-    except Exception as e:
-        return jsonify({"error": "OCR processing failed"}), 500
-
-@app.route("/detect-food", methods=["POST"])
-def detect_food():
-    if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
-    
-    try:
-        file = request.files["file"]
-        image = Image.open(file.stream).convert("RGB")
-        results = yolo_model.predict(image)
-        
-        if not results[0].boxes or len(results[0].boxes.cls) == 0:
-            return jsonify({"error": "No food items detected"}), 400
-            
-        labels = [results[0].names[cls.item()] for cls in results[0].boxes.cls]
-        return jsonify({
-            "detections": labels,
-            "count": len(labels),
-            "primary_item": labels[0]
-        })
-        
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/food-nutrition', methods=['POST'])
-def food_nutrition():
-    data = request.get_json()
-    food_name = data.get('food_name', '').strip().lower()
-    if not food_name:
-        return jsonify({'error': 'Missing food_name'}), 400
-
-    df = service_data['full_df']
-    food_row = df[df['Food Name'].str.strip().str.lower() == food_name]
-    
-    if food_row.empty:
-        return jsonify({'error': f'Nutrition info not found for {food_name}'}), 404
-
-    food = food_row.iloc[0]
-    
-    nutrition = {
-        'food_name': food['Food Name'].strip(),
-        'category': food['Category'],
-        'calories': int(food['Calories']),
-        'carbs': float(food['Carbs']),
-        'protein': float(food['Protein']),
-        'fat': float(food['Fats']),
-        'fiber': float(food['Fiber']),
-        'glycemic_index': int(food['GI']),
-        'glycemic_load': float(food['GL']),
-        'processed_level': food['Processed Level'],
-        'portion': food['portion_guidance'],
-        'recommendation': food['recommendation']
-    }
-
-    return jsonify(nutrition)
-
-# ---------- Error Handling ----------
-
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({'error': 'Endpoint not found'}), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({'error': 'Internal server error'}), 500
-
 if __name__ == "__main__":
+    print("🚀 Starting Nourish API Server...")
+    print("📝 Available endpoints:")
+    print("   GET  / - API status")
+    print("   POST /detect-food - Detect food items")
+    print("   POST /estimate-quantity - Estimate food quantity with coin")
+    print("   POST /detect-and-estimate - Combined detection + quantity")
+    print("   POST /recommend - Get food recommendations")
+    print("   POST /food-nutrition - Get nutrition info")
+    print("   POST /ocr - OCR text extraction")
     app.run(host="0.0.0.0", port=5001, debug=True)
