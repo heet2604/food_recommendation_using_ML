@@ -13,9 +13,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
 from flask_cors import CORS
 
-# Initialize models
-food_model = YOLO("best.pt")
-coin_model = YOLO("best(2-rs-coin).pt")  # Make sure this model file is available
+# Initialize models with correct paths
+food_model = YOLO("./best.pt")
+coin_model = YOLO("./best(2-rs-coin).pt")  # Make sure this file exists
 
 def main():
     image_data = base64.b64decode(sys.stdin.read())
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     main()
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-yolo_model = YOLO('best.pt')  # Path to your YOLOv8 weights
+yolo_model = YOLO('./best.pt')  # Using the same food model
 
 app = Flask(__name__)
 CORS(app)
@@ -84,7 +84,6 @@ def estimate_food_weight(image_path):
     food_results = food_model(image_path)
     total_weight = 0
     food_details = []
-    outputs = []
 
     for box, cls_id in zip(food_results[0].boxes.xyxy.cpu().numpy(),
                            food_results[0].boxes.cls.cpu().numpy()):
@@ -114,8 +113,6 @@ def estimate_food_weight(image_path):
             "area_cm2": round(area_cm2, 1),
             "density": density
         })
-        
-        outputs.append(f"{food_name}: ~{weight:.1f} g")
 
     return food_details, total_weight
 
@@ -208,7 +205,8 @@ def compute_group_similarities(df, features):
 
 def initialize_service():
     """Load dataset and precompute similarity matrices"""
-    df = load_dataset('Indian_Foods_Dataset_With_Tags_Final.csv')
+    # Use your actual dataset file name
+    df = load_dataset('./Indian_Foods_Dataset_With_Tags_Final.csv')
     
     if df is None:
         print("Error: Could not load dataset")
@@ -266,7 +264,38 @@ def handle_dessert_recommendation(food_name):
                 'fats': 0
             }
         },
-        # ... (rest of your fruit salad recommendations)
+        {
+            'name': 'Citrus Fruit Salad',
+            'category': 'Healthy Dessert',
+            'group': 'dessert',
+            'health_status': 'diabetic_friendly',
+            'processed_level': 'unprocessed',
+            'preparation': 'Combine oranges, grapefruit, and mandarin segments with a hint of mint.',
+            'portion': 'One cup (about 150g)',
+            'similarity': 0.90,
+            'nutrition': {
+                'calories': 70,
+                'carbs': 17,
+                'protein': 1,
+                'fats': 0
+            }
+        },
+        {
+            'name': 'Berry Fruit Salad',
+            'category': 'Healthy Dessert',
+            'group': 'dessert',
+            'health_status': 'diabetic_friendly',
+            'processed_level': 'unprocessed',
+            'preparation': 'Mix strawberries, blueberries, raspberries, and blackberries.',
+            'portion': 'One cup (about 150g)',
+            'similarity': 0.85,
+            'nutrition': {
+                'calories': 75,
+                'carbs': 16,
+                'protein': 1,
+                'fats': 0
+            }
+        }
     ]
     
     return jsonify({
@@ -279,7 +308,7 @@ def handle_dessert_recommendation(food_name):
             "Fresh fruit salads are naturally sweet and provide essential vitamins, minerals, and fiber",
             "The fiber in fruit helps slow sugar absorption, making it better for blood glucose control",
             "Portion control is still important - stick to the recommended serving sizes",
-            # ... (rest of your tips)
+            "Add nuts or seeds for healthy fats and protein to further reduce glycemic impact"
         ]
     })
 
@@ -296,7 +325,6 @@ def recommend():
     
     df = service_data['full_df']
     filtered_df = service_data['filtered_df']
-    features = service_data['features']
     
     food_data = df[df['Food Name'].str.lower() == food_name.lower()]
     if food_data.empty:
@@ -351,7 +379,8 @@ def estimate_quantity():
         food_details, total_weight = estimate_food_weight(file_path)
         
         # Clean up uploaded file
-        os.remove(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
         
         if isinstance(food_details, dict) and "error" in food_details:
             return jsonify(food_details), 400
@@ -383,7 +412,8 @@ def detect_and_estimate():
         results = yolo_model.predict(image)
         
         if not results[0].boxes or len(results[0].boxes.cls) == 0:
-            os.remove(file_path)
+            if os.path.exists(file_path):
+                os.remove(file_path)
             return jsonify({"error": "No food items detected"}), 400
             
         labels = [results[0].names[cls.item()] for cls in results[0].boxes.cls]
@@ -401,7 +431,8 @@ def detect_and_estimate():
             print(f"Quantity estimation failed: {e}")
         
         # Clean up
-        os.remove(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
         
         response = {
             "detections": labels,
@@ -421,7 +452,6 @@ def detect_and_estimate():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Rest of your existing functions (get_diabetic_recommendations, get_healthy_alternatives, etc.)
 def get_diabetic_recommendations(food_name, top_n=5):
     """Get similar diabetes-friendly food recommendations within the same category group."""
     df = service_data['full_df']
@@ -447,7 +477,7 @@ def get_diabetic_recommendations(food_name, top_n=5):
     sorted_scores = sorted(all_scores, key=lambda x: x[1], reverse=True)
     
     recommendations = []
-    for idx, score in sorted_scores[1:]:
+    for idx, score in sorted_scores[1:top_n+1]:
         recommendations.append(_format_recommendation(idx, score))
         if len(recommendations) >= top_n:
             break
@@ -539,7 +569,7 @@ def _format_recommendation(idx, score=None):
         }
     }
 
-# Your existing endpoints (keep them as they are)
+# Your existing endpoints
 @app.route("/ocr", methods=["POST"])
 def process_image():
     if "file" not in request.files:
@@ -552,7 +582,8 @@ def process_image():
         file.save(file_path)
         results = ocr.ocr(file_path, cls=True)
         extracted_text = "\n".join([line[1][0] for res in results for line in res])
-        os.remove(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
         return jsonify({"text": extracted_text})
     except Exception as e:
         return jsonify({"error": "OCR processing failed"}), 500
