@@ -12,7 +12,7 @@ from PIL import Image
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 yolo_model = YOLO('best.pt')  # Path to your YOLOv8 weights
 
-app = Flask(_name_)
+app = Flask(__name__)
 CORS(app)
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # Allow up to 10MB
 
@@ -558,5 +558,5 @@ def not_found(error):
 def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     app.run(host="0.0.0.0", port=5001, debug=True)
