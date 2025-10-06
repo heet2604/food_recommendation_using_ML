@@ -19,10 +19,43 @@ const path = require('path')
 const FormData = require("form-data");
 const { spawn } = require("child_process")
 const csv = require('csv-parser');
+const { encrypt, decrypt } = require(__dirname + '/utils/encryption.js');
 // const { distance } = require('ml-distance');
 // const math = require('mathjs');
 const uploads = multer({ dest: "uploads/" })
 
+// ========== DEBUG CODE - ADD THIS ==========
+console.log("🎯 SERVER STARTING - " + new Date().toISOString());
+console.log("📁 Current directory:", __dirname);
+
+// Test encryption import
+try {
+  const { encrypt, decrypt } = require(__dirname + '/utils/encryption.js');
+  console.log("✅ Encryption imported successfully!");
+  console.log("🔐 Test encryption of '120':", encrypt("120"));
+} catch (error) {
+  console.log("❌ Encryption import failed:", error.message);
+}
+// ========== END DEBUG CODE ==========
+
+// ========== ADD THIS TEST ROUTE ==========
+app.get("/debug-encryption", (req, res) => {
+  console.log("🎯 DEBUG ROUTE HIT AT: " + new Date().toISOString());
+  const test1 = encrypt("120");
+  const test2 = encrypt("95");
+  console.log("Encrypted 120:", test1);
+  console.log("Encrypted 95:", test2);
+  console.log("Decrypted 120:", decrypt(test1));
+  console.log("Decrypted 95:", decrypt(test2));
+  
+  res.json({
+    message: "Check your terminal for debug logs!",
+    encrypted_120: test1,
+    encrypted_95: test2,
+    timestamp: new Date().toISOString()
+  });
+});
+// ========== END TEST ROUTE ==========
 
 const port = 5000;
 app.use(express.json());
@@ -469,16 +502,26 @@ app.put("/profile", authMiddleware, async (req, res) => {
 
 // New Routes for Vitals
 const Vitals = require("./models/vitals");
-const { parse } = require("dotenv");
-const c = require("config");
 
-
-
-
+// ONLY ONE SET OF VITALS ROUTES (WITH ENCRYPTION) - DELETED THE DUPLICATES
 app.post("/api/vitals", authMiddleware, async (req, res) => {
   try {
     const { sugarReading, weightReading } = req.body;
     const userId = req.user.userId;
+
+    console.log("=== ENCRYPTION DEBUG START ===");
+    console.log("Original sugarReading:", sugarReading, "Type:", typeof sugarReading);
+    console.log("Original weightReading:", weightReading, "Type:", typeof weightReading);
+
+    // ENCRYPT sensitive data before storing
+    const encryptedSugar = encrypt(sugarReading.toString());
+    const encryptedWeight = encrypt(weightReading.toString());
+
+    console.log("Encrypted sugarReading:", encryptedSugar);
+    console.log("Encrypted weightReading:", encryptedWeight);
+    console.log("Encrypted sugar length:", encryptedSugar.length);
+    console.log("Encrypted weight length:", encryptedWeight.length);
+    console.log("=== ENCRYPTION DEBUG END ===");
 
     if (!sugarReading || !weightReading) {
       return res.status(400).json({ message: "All fields are required." });
@@ -493,24 +536,21 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
 
     // Recalculate maintenance calories and macros with new weight
     const maintenanceCalories = calculateMaintenanceCalories(
-      weightReading,
+      weightReading, // Use original weight for calculations
       existingUserDetails.height,
       existingUserDetails.age,
       existingUserDetails.gender,
       existingUserDetails.activityLevel
     );
 
-    // Adjust Calories Based on Weight Goal
     const adjustedCalories = maintenanceCalories + (existingUserDetails.weightGoal * 7700) / 7;
-
-    // Recalculate Daily Macros
     const dailyMacros = calculateDailyMacros(weightReading, adjustedCalories);
 
     // Update user details with new weight, calories, and macros
     const updatedUserDetails = await UserDetails.findOneAndUpdate(
       { userId },
       {
-        weight: weightReading,
+        weight: weightReading, // Keep original for calculations
         maintenanceCalories: adjustedCalories,
         dailyMacros: dailyMacros,
         bmi: calculateBMI(weightReading, existingUserDetails.height)
@@ -518,17 +558,23 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
       { new: true }
     );
 
-    // Create new vitals entry
+    // Create new vitals entry with ENCRYPTED data
     const vitals = await Vitals.create({
       userId,
-      sugarReading,
-      weightReading,
+      sugarReading: encryptedSugar, // Store encrypted
+      weightReading: encryptedWeight, // Store encrypted
     });
+
+    console.log("✅ Saved to database - sugar:", encryptedSugar, "weight:", encryptedWeight);
 
     res.status(201).json({
       success: true,
       message: "Vitals added successfully!",
-      vitals,
+      vitals: {
+        ...vitals._doc,
+        sugarReading: sugarReading, // Send back decrypted values in response
+        weightReading: weightReading
+      },
       userDetails: updatedUserDetails
     });
   } catch (error) {
@@ -537,14 +583,37 @@ app.post("/api/vitals", authMiddleware, async (req, res) => {
   }
 });
 
-
-
 app.get("/api/vitals", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
     const vitals = await Vitals.find({ userId });
 
-    res.status(200).json({ success: true, vitals });
+    console.log("=== DECRYPTION DEBUG START ===");
+    console.log("Raw data from database:");
+    vitals.forEach((vital, index) => {
+      console.log(`Entry ${index}: sugar=${vital.sugarReading}, weight=${vital.weightReading}`);
+    });
+
+    // DECRYPT the sensitive data before sending to client
+    const decryptedVitals = vitals.map(vital => {
+      const decryptedSugar = decrypt(vital.sugarReading);
+      const decryptedWeight = decrypt(vital.weightReading);
+      
+      console.log(`Decrypted: sugar=${decryptedSugar}, weight=${decryptedWeight}`);
+      
+      return {
+        ...vital._doc,
+        sugarReading: decryptedSugar,
+        weightReading: decryptedWeight
+      };
+    });
+
+    console.log("=== DECRYPTION DEBUG END ===");
+
+    res.status(200).json({ 
+      success: true, 
+      vitals: decryptedVitals 
+    });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
@@ -674,60 +743,60 @@ app.get("/api/dashboard-data", authMiddleware, async (req, res) => {
 
 // Add these routes to your existing server file
 
-app.post("/api/vitals", authMiddleware, async (req, res) => {
-  try {
-    const { sugarReading, weightReading } = req.body;
-    const userId = req.user.userId;
+// app.post("/api/vitals", authMiddleware, async (req, res) => {
+//   try {
+//     const { sugarReading, weightReading } = req.body;
+//     const userId = req.user.userId;
 
-    if (!sugarReading || !weightReading) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
+//     if (!sugarReading || !weightReading) {
+//       return res.status(400).json({ message: "All fields are required." });
+//     }
 
-    // Create new vitals entry
-    const vitals = await Vitals.create({
-      userId,
-      sugarReading,
-      weightReading,
-    });
+//     // Create new vitals entry
+//     const vitals = await Vitals.create({
+//       userId,
+//       sugarReading,
+//       weightReading,
+//     });
 
-    // Update user details with the latest weight
-    await UserDetails.findOneAndUpdate(
-      { userId },
-      { weight: weightReading },
-      { new: true }
-    );
+//     // Update user details with the latest weight
+//     await UserDetails.findOneAndUpdate(
+//       { userId },
+//       { weight: weightReading },
+//       { new: true }
+//     );
 
-    res.status(201).json({
-      success: true,
-      message: "Vitals added successfully!",
-      vitals
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
-  }
-});
+//     res.status(201).json({
+//       success: true,
+//       message: "Vitals added successfully!",
+//       vitals
+//     });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+//   }
+// });
 
-app.get("/api/vitals", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.userId;
+// app.get("/api/vitals", authMiddleware, async (req, res) => {
+//   try {
+//     const userId = req.user.userId;
 
-    // Fetch all vitals for the user, sorted by timestamp
-    const vitals = await Vitals.find({ userId }).sort({ timestamp: -1 });
+//     // Fetch all vitals for the user, sorted by timestamp
+//     const vitals = await Vitals.find({ userId }).sort({ timestamp: -1 });
 
-    // Optional: Get the latest vitals for quick reference
-    const latestVitals = vitals.length > 0 ? vitals[0] : null;
+//     // Optional: Get the latest vitals for quick reference
+//     const latestVitals = vitals.length > 0 ? vitals[0] : null;
 
-    res.status(200).json({
-      success: true,
-      vitals,
-      latestVitals
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
-  }
-});
+//     res.status(200).json({
+//       success: true,
+//       vitals,
+//       latestVitals
+//     });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
+//   }
+// });
 
 // app.post("/api/generate-meal-plan", authMiddleware, async (req, res) => {
 //   try {
@@ -848,7 +917,6 @@ app.get("/api/vitals", authMiddleware, async (req, res) => {
 //     res.status(500).json({ success: false, message: "Something went wrong. Please try again." });
 //   }
 // });
-
 
 const upload = multer({ dest: "uploads/" });
 
