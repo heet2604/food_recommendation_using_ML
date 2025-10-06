@@ -7,11 +7,11 @@ const VitalsSchema = new mongoose.Schema({
     required: true
   },
   sugarReading: {
-    type: Number,
+    type: String,
     required: true
   },
   weightReading: {
-    type: Number,
+    type: String,
     required: true
   },
   timestamp: {
