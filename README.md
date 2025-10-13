@@ -83,3 +83,5 @@ Run the frontend React app using npm run dev or npm start.
 
 ### 6. Access the Application
 Once both servers are running, open the app in your browser.
+
+## GitHub Link : https://github.com/heet2604/food_recommendation_using_ML
