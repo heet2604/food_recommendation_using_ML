@@ -1,69 +1,85 @@
-# 🥗 Nourish — Intelligent Food Recommendation System  
+# 🥗 Nourish - Intelligent Food Recommendation System
 
-> **Empowering Healthier Choices with AI and Nutrition Intelligence**
-
-Nourish is a next-generation intelligent food recommendation platform that helps individuals — especially those managing **diabetes** or **insulin resistance** — make smarter, healthier, and data-driven dietary choices.  
-Built with security, personalization, and simplicity in mind. 💚
+*Nourish* is an AI-powered food recommendation platform designed to help individuals — especially those with *diabetes* or *insulin resistance* — make smarter dietary choices.  
+It provides *personalized nutrition recommendations, **tracks blood sugar levels, and enhances user engagement through **progress tracking, **gamification, and an **AI-powered WhatsApp chatbot*.
 
 ---
 
 ## 🚀 Features
 
-### 🔍 Food Search & Smart Recommendations
-Find any food item and instantly get **healthier alternatives** with detailed **macronutrient insights** powered by AI.
+- 🔍 *Food Search & Recommendations*  
+  Search for food items and instantly receive healthier alternatives with detailed nutritional information.
 
-### 📈 Blood Sugar Tracking  
-Monitor and log **blood sugar levels** securely with easy visualization and long-term trend tracking.
+- 📈 *Blood Sugar Level Tracking*  
+  Log and monitor blood sugar levels over time. Get personalized insights and food suggestions based on sugar spikes and patterns.
 
-### 🔒 AES-256 Data Encryption  
-Your data, your control. Every sensitive health record is encrypted using **AES-256-CBC** before being stored in MongoDB.
+- 🧠 *Recommendation Engine*  
+  Uses *Content-Based Filtering*, designed in JavaScript to minimize API call costs and improve response speed.  
+  It compares nutritional profiles and recommends similar but healthier food options.
 
-### 🧠 JavaScript Recommendation Engine  
-A **content-based filtering engine** built entirely in JavaScript ensures **fast**, **lightweight**, and **cost-efficient** recommendations.
+- 🥦 *Food Image Recognition*  
+  Upload an image of your meal and instantly get the food name along with macro-nutrient breakdown using *YOLOv8, custom-trained on **Roboflow datasets*.
 
-### 🥦 Food Image Recognition  
-Simply upload an image 🍱 — our **YOLOv8-based model** identifies the food item and provides real-time nutrition insights.
+- 📊 *Progress Tracker*  
+  Visualizes your dietary improvements and blood sugar trends through clean and interactive charts, motivating users to stay consistent.
 
-### 📊 Interactive Progress Dashboard  
-Track your **daily nutrition**, **blood sugar patterns**, and **overall health progress** through beautiful, data-rich dashboards.
-
-### 🧾 Medical Report Analysis  
-Upload your reports and let our **OCR + AI engine** summarize key findings and insights from your health data.
+- 🧾 *Medical Report Upload & Summarization*  
+  Upload your medical reports — the system extracts text using *PaddleOCR* and simplifies complex medical terms using *OpenAI’s LLaMA 3.0 Turbo*, turning data into easy-to-understand insights.
 
 ---
 
-## 🛠️ Tech Stack
+## 🔒 AES Encryption for Security
 
-| Category | Technologies |
-|-----------|---------------|
-| **Frontend** | React.js, Tailwind CSS |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB with AES-256 Encryption |
-| **AI / ML** | YOLOv8, LLaMA 3.0, Content-Based Filtering |
-| **Tools & APIs** | PaddleOCR, Together AI, Roboflow |
+Nourish ensures *top-tier data protection* by integrating *AES (Advanced Encryption Standard)* encryption across all sensitive information stored or transmitted in the application.
 
----
+### How Security is Implemented
 
-## 🔐 Security & Privacy
+1. *Encryption Key Management*  
+   A secure 256-bit AES key is generated and stored in an environment variable. This ensures that even if the database is compromised, user data remains unreadable.
 
-Nourish is built with **end-to-end security** to safeguard sensitive health information.
+2. *Data Encryption Before Storage*  
+   Sensitive details such as user login credentials, medical report content, and blood sugar readings are encrypted before being stored in the database.
 
-- 🧩 **AES-256-CBC encryption** for all health and user data  
-- 🔑 **Secure key management** via environment variables  
-- 🌀 **Random IV generation** for every encryption cycle  
-- ✅ **Application-level encryption** before database storage  
-- ⚕️ **Compliant with healthcare data protection standards**
+3. *Decryption Only During Retrieval*  
+   Data is decrypted only when the user requests it and after authentication is verified. This guarantees end-to-end data privacy.
+
+4. *Transport Layer Security*  
+   All communication between frontend, backend, and databases is secured using HTTPS and encrypted APIs.
 
 ---
 
-## 🌱 Why Nourish?
+## 🛠 Tech Stack
 
-> “What you eat defines your tomorrow.”
-
-- Personalized for your **health goals**  
-- Built with **AI-powered intelligence**  
-- Designed with **privacy-first architecture**  
-- Helps you make **smarter food decisions** backed by science
+| Frontend         | Backend            | ML & AI Models       | Other Tools              |
+|------------------|--------------------|----------------------|---------------------------|
+| React.js         | Node.js, Express   | YOLOv8, LLaMA 3.0    | PaddleOCR, Together AI    |
+| Tailwind CSS     | MongoDB            | Content-Based Filtering | Roboflow (Custom Dataset) |
 
 ---
 
+## ⚙ Implementation - Project Execution Guide
+
+Follow these steps to run *Nourish* locally or in a production environment.
+
+### 1. Clone the Repository
+Clone the Nourish repository to your local system using Git.
+
+### 2. Install Dependencies
+Navigate to both frontend and backend folders and install all required dependencies using npm install.
+
+### 3. Setup Environment Variables
+Create a .env file in the backend directory and include:
+- MongoDB connection URL  
+- AES encryption key  
+- OpenAI or Together AI API key  
+- JWT secret  
+- Any other API credentials for third-party integrations
+
+### 4. Start the Backend Server
+Run the backend using npm start or nodemon to start the Express server.
+
+### 5. Start the Frontend
+Run the frontend React app using npm run dev or npm start.
+
+### 6. Access the Application
+Once both servers are running, open the app in your browser.
