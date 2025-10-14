@@ -82,11 +82,38 @@ FOOD_THICKNESS = {
 
 def estimate_food_weight(image_path):
     """Estimate food weight using coin as scale reference"""
+    # Read image
     img = cv2.imread(image_path)
+    original_height, original_width = img.shape[:2]
+    
+    # Force resize to 640x640 while maintaining aspect ratio
+    target_size = 640
+    scale = min(target_size / original_width, target_size / original_height)
+    new_width = int(original_width * scale)
+    new_height = int(original_height * scale)
+    
+    # Resize image
+    img_resized = cv2.resize(img, (new_width, new_height))
+    
+    # Create a 640x640 canvas with black background
+    canvas = np.zeros((target_size, target_size, 3), dtype=np.uint8)
+    
+    # Center the resized image on the canvas
+    x_offset = (target_size - new_width) // 2
+    y_offset = (target_size - new_height) // 2
+    canvas[y_offset:y_offset+new_height, x_offset:x_offset+new_width] = img_resized
+    
+    # Save the properly sized image
+    cv2.imwrite(image_path, canvas)
+    
+    print(f"Original: {original_width}x{original_height}, Resized: {new_width}x{new_height} on 640x640 canvas")
 
     # --- Detect coin ---
     coin_results = coin_model(image_path)
     coin_boxes = coin_results[0].boxes.xyxy.cpu().numpy()
+    
+    print(f"Coin detection: {len(coin_boxes)} coins detected")
+    
     if len(coin_boxes) == 0:
         return None, "❌ No coin detected! Please place a 2 Rs coin for scale."
 
@@ -94,11 +121,17 @@ def estimate_food_weight(image_path):
     (x1, y1, x2, y2) = coin_boxes[0]
     coin_diameter_px = max(x2 - x1, y2 - y1)
     px_per_cm = coin_diameter_px / COIN_DIAMETER_CM
+    
+    print(f"Coin bbox: ({x1:.1f}, {y1:.1f}, {x2:.1f}, {y2:.1f})")
+    print(f"Coin diameter (px): {coin_diameter_px:.1f}")
+    print(f"Pixels per cm: {px_per_cm:.2f}")
 
     # --- Detect food ---
     food_results = food_model(image_path)
     food_items = []
     total_weight = 0
+
+    print(f"Food detections: {len(food_results[0].boxes)} items")
 
     for box, cls_id, conf in zip(food_results[0].boxes.xyxy.cpu().numpy(),
                                 food_results[0].boxes.cls.cpu().numpy(),
@@ -106,6 +139,9 @@ def estimate_food_weight(image_path):
         x1, y1, x2, y2 = box
         food_name = food_model.names[int(cls_id)]
         confidence = float(conf)
+
+        print(f"Food: {food_name}, Confidence: {confidence:.2f}")
+        print(f"Food bbox: ({x1:.1f}, {y1:.1f}, {x2:.1f}, {y2:.1f})")
 
         # Convert bbox area to cm²
         width_cm = (x2 - x1) / px_per_cm
@@ -122,6 +158,10 @@ def estimate_food_weight(image_path):
         # Weight in grams
         weight = volume_cm3 * density
         total_weight += weight
+
+        print(f"Width: {width_cm:.1f}cm, Height: {height_cm:.1f}cm")
+        print(f"Area: {area_cm2:.1f}cm², Volume: {volume_cm3:.1f}cm³")
+        print(f"Density: {density}g/cm³, Calculated weight: {weight:.1f}g")
 
         food_items.append({
             "name": food_name,
