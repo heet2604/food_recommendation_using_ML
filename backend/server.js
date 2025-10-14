@@ -1030,12 +1030,17 @@ app.post("/upload", upload.single("file"), async (req, res) => {
     }
 
     const detectedFood = detectionResponse.data.primary_item;
+    const detectedWeight = detectionResponse.data.total_weight_grams; // ADD THIS LINE
     console.log("✅ Detected food:", detectedFood);
+    console.log("✅ Detected weight:", detectedWeight, "g"); // ADD THIS LOG
 
-    // 2. Get nutrition data
+    // 2. Get nutrition data WITH THE DETECTED WEIGHT
     const nutritionResponse = await axios.post(
       `${process.env.NGROK_URL}/food-nutrition`,
-      { food_name: detectedFood }
+      { 
+        food_name: detectedFood,
+        weight_grams: detectedWeight // ADD THIS PARAMETER
+      }
     );
 
     // 3. Handle response
@@ -1044,6 +1049,14 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       // Dataset lookup failed, use LLM fallback
       console.log("⚠️ Dataset lookup failed, using LLM fallback");
       macros = await queryLLM(detectedFood);
+      // If using LLM fallback, you might want to scale the results too
+      if (macros && detectedWeight) {
+        const scaleFactor = detectedWeight / 100;
+        macros.calories = Math.round(macros.calories * scaleFactor);
+        macros.protein = Math.round(macros.protein * scaleFactor * 10) / 10;
+        macros.carbs = Math.round(macros.carbs * scaleFactor * 10) / 10;
+        macros.fat = Math.round(macros.fat * scaleFactor * 10) / 10;
+      }
     } else {
       // Map dataset fields to expected frontend structure
       macros = {
@@ -1053,12 +1066,14 @@ app.post("/upload", upload.single("file"), async (req, res) => {
         carbs: nutritionResponse.data.carbs,
         fat: nutritionResponse.data.fat, // CSV uses 'Fats' column
         fiber: nutritionResponse.data.fiber,
-        glycemic_index: nutritionResponse.data.gi // CSV uses 'GI' column
+        glycemic_index: nutritionResponse.data.glycemic_index, // Fixed field name
+        serving_size_grams: nutritionResponse.data.serving_size_grams // ADD THIS
       };
     }
 
     res.json({
       detected_food: detectedFood,
+      detected_weight: detectedWeight, // SEND WEIGHT TO FRONTEND
       macros
     });
 
