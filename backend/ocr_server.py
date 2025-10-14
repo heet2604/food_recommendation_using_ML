@@ -8,9 +8,15 @@ from flask_cors import CORS
 import numpy as np
 from ultralytics import YOLO
 from PIL import Image
+import cv2
+import io
+import tempfile
+
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-yolo_model = YOLO('best.pt')  # Path to your YOLOv8 weights
+# Load both models
+food_model = YOLO('best.pt')  # Path to your food detection weights
+coin_model = YOLO('best(2-rs-coin).pt')  # Path to your coin detection weights
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +26,116 @@ ocr = PaddleOCR(use_angle_cls=True, lang="en")
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Coin-based estimation configuration
+COIN_DIAMETER_CM = 2.7  # real 2 Rs coin diameter in cm
+
+# Approx food densities (g/cm³)
+FOOD_DENSITIES = {
+    "poha": 0.80,
+    "rice": 0.75,
+    "roti": 0.45,
+    "dal": 0.95,
+    "sabzi": 0.65,
+    "egg": 0.6,
+    "aloo sabji": 0.59,
+    "bhakri": 0.7,
+    "chole": 0.85,
+    "bhindi": 0.62,
+    "coconut chutney": 0.37,
+    "khandvi": 1.0,
+    "medu vada": 0.89,
+    "omlette": 0.95,
+    "yogurt": 1.031,
+    "dhokla": 0.17,
+    "pulao": 0.68,
+    "thepla": 0.71,
+    "sambhar": 0.88,
+    "salad": 0.21,
+    "rajma": 1.05
+}
+
+# Food thickness assumptions (in cm)
+FOOD_THICKNESS = {
+    "roti": 0.3,
+    "poha": 0.8,
+    "rice": 1.5,
+    "dal": 1.0,
+    "sabzi": 1.2,
+    "egg": 1.0,
+    "aloo sabji": 1.5,
+    "bhakri": 0.4,
+    "chole": 1.2,
+    "bhindi": 0.8,
+    "coconut chutney": 0.5,
+    "khandvi": 0.5,
+    "medu vada": 1.0,
+    "omlette": 0.8,
+    "yogurt": 1.0,
+    "dhokla": 1.0,
+    "pulao": 1.5,
+    "thepla": 0.3,
+    "sambhar": 1.0,
+    "salad": 2.0,
+    "rajma": 1.2
+}
+
+def estimate_food_weight(image_path):
+    """Estimate food weight using coin as scale reference"""
+    img = cv2.imread(image_path)
+
+    # --- Detect coin ---
+    coin_results = coin_model(image_path)
+    coin_boxes = coin_results[0].boxes.xyxy.cpu().numpy()
+    if len(coin_boxes) == 0:
+        return None, "❌ No coin detected! Please place a 2 Rs coin for scale."
+
+    # Take first detected coin
+    (x1, y1, x2, y2) = coin_boxes[0]
+    coin_diameter_px = max(x2 - x1, y2 - y1)
+    px_per_cm = coin_diameter_px / COIN_DIAMETER_CM
+
+    # --- Detect food ---
+    food_results = food_model(image_path)
+    food_items = []
+    total_weight = 0
+
+    for box, cls_id, conf in zip(food_results[0].boxes.xyxy.cpu().numpy(),
+                                food_results[0].boxes.cls.cpu().numpy(),
+                                food_results[0].boxes.conf.cpu().numpy()):
+        x1, y1, x2, y2 = box
+        food_name = food_model.names[int(cls_id)]
+        confidence = float(conf)
+
+        # Convert bbox area to cm²
+        width_cm = (x2 - x1) / px_per_cm
+        height_cm = (y2 - y1) / px_per_cm
+        area_cm2 = width_cm * height_cm
+
+        # Get thickness based on food type
+        thickness = FOOD_THICKNESS.get(food_name, 1.0)
+        volume_cm3 = area_cm2 * thickness
+
+        # Lookup density
+        density = FOOD_DENSITIES.get(food_name, 0.5)
+
+        # Weight in grams
+        weight = volume_cm3 * density
+        total_weight += weight
+
+        food_items.append({
+            "name": food_name,
+            "weight": round(weight, 1),
+            "confidence": round(confidence, 2),
+            "bbox": {
+                "x1": float(x1),
+                "y1": float(y1),
+                "x2": float(x2),
+                "y2": float(y2)
+            }
+        })
+
+    return food_items, total_weight
 
 # ---------- Initialization (Runs once at startup) ----------
 
@@ -485,7 +601,7 @@ def process_image():
         return jsonify({"error": "OCR processing failed"}), 500
 
 
-# In your Flask app (app.py)
+# Updated Food Detection Endpoint with Coin-based Quantity Estimation
 @app.route("/detect-food", methods=["POST"])
 def detect_food():
     if "file" not in request.files:
@@ -493,28 +609,47 @@ def detect_food():
     
     try:
         file = request.files["file"]
-        image = Image.open(file.stream).convert("RGB")
-        results = yolo_model.predict(image)
         
-        if not results[0].boxes or len(results[0].boxes.cls) == 0:
-            return jsonify({"error": "No food items detected"}), 400
+        # Save uploaded file temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+            file.save(temp_file.name)
+            temp_path = temp_file.name
+        
+        # Estimate food weight using coin-based method
+        food_items, total_weight = estimate_food_weight(temp_path)
+        
+        # Clean up temp file
+        os.unlink(temp_path)
+        
+        if isinstance(total_weight, str):  # Error message
+            return jsonify({"error": total_weight}), 400
             
-        labels = [results[0].names[cls.item()] for cls in results[0].boxes.cls]
+        if not food_items:
+            return jsonify({"error": "No food items detected"}), 400
+        
+        # Get detection labels for backward compatibility
+        labels = [item["name"] for item in food_items]
+        
         return jsonify({
             "detections": labels,
             "count": len(labels),
-            "primary_item": labels[0]  # Most confident detection
+            "primary_item": labels[0],  # Most confident detection
+            "detailed_detections": food_items,
+            "total_weight_grams": round(total_weight, 1),
+            "estimation_method": "coin_scale"
         })
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-
+# Updated Nutrition Endpoint to Support Weight-based Calculations
 @app.route('/food-nutrition', methods=['POST'])
 def food_nutrition():
     data = request.get_json()
     food_name = data.get('food_name', '').strip().lower()
+    weight_grams = data.get('weight_grams', 100)  # Default to 100g if not provided
+    
     if not food_name:
         return jsonify({'error': 'Missing food_name'}), 400
 
@@ -529,20 +664,25 @@ def food_nutrition():
 
     food = food_row.iloc[0]
     
+    # Calculate nutrition based on actual weight
+    weight_factor = weight_grams / 100.0
+    
     # Map all CSV columns to API response
     nutrition = {
         'food_name': food['Food Name'].strip(),
         'category': food['Category'],
-        'calories': int(food['Calories']),
-        'carbs': float(food['Carbs']),
-        'protein': float(food['Protein']),
-        'fat': float(food['Fats']),  # Note: CSV uses 'Fats' but we return 'fat'
-        'fiber': float(food['Fiber']),
+        'calories': int(food['Calories'] * weight_factor),
+        'carbs': float(food['Carbs'] * weight_factor),
+        'protein': float(food['Protein'] * weight_factor),
+        'fat': float(food['Fats'] * weight_factor),
+        'fiber': float(food['Fiber'] * weight_factor),
         'glycemic_index': int(food['GI']),
-        'glycemic_load': float(food['GL']),
+        'glycemic_load': float(food['GL'] * weight_factor),
         'processed_level': food['Processed Level'],
         'portion': food['portion_guidance'],
-        'recommendation': food['recommendation']
+        'recommendation': food['recommendation'],
+        'serving_size_grams': weight_grams,
+        'base_serving_size': 100  # Original database serving size
     }
 
     return jsonify(nutrition)
